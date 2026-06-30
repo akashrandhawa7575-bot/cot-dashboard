@@ -441,6 +441,35 @@
   .csc-stat{background:var(--subtle);border-radius:6px;padding:5px 7px;text-align:center;}
   .csc-stat-label{font-family:var(--mono);font-size:7px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
   .csc-stat-val{font-family:var(--mono);font-size:12px;font-weight:700;margin-top:1px;}
+  /* WILLIAMS TABLE */
+  .williams-table{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:12px;}
+  .williams-table th{background:var(--panel);color:var(--muted);font-size:10px;font-weight:700;letter-spacing:.05em;padding:9px 12px;border:1px solid var(--border);text-align:left;}
+  .williams-table td{padding:9px 12px;border:1px solid var(--border);vertical-align:middle;}
+  .williams-table tbody tr:hover{background:rgba(255,255,255,.02);}
+  .w-signal-pill{font-family:var(--mono);font-size:9px;font-weight:700;padding:3px 8px;border-radius:20px;display:inline-block;text-transform:uppercase;}
+  .w-agree{background:rgba(34,197,94,.15);color:#22c55e;font-family:var(--mono);font-size:9px;font-weight:700;padding:3px 8px;border-radius:4px;}
+  .w-diverge{background:rgba(168,85,247,.15);color:#c084fc;font-family:var(--mono);font-size:9px;font-weight:700;padding:3px 8px;border-radius:4px;}
+  .w-log-btn{background:var(--subtle);color:var(--accent);border:1px solid var(--border);padding:3px 10px;border-radius:6px;font-family:var(--mono);font-size:9px;cursor:pointer;transition:all .15s;}
+  .w-log-btn:hover{background:var(--accent);color:#fff;}
+  /* SCORE CARDS */
+  .wl-scorecard{background:var(--subtle);border-radius:10px;padding:14px;text-align:center;}
+  .wl-scorecard-label{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px;}
+  .wl-scorecard-wins{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--text);}
+  .wl-scorecard-pct{font-family:var(--mono);font-size:11px;color:var(--accent);margin-top:3px;}
+  /* MODAL */
+  .modal-label{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);display:block;margin-bottom:4px;}
+  .modal-input{width:100%;background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--text);font-family:var(--mono);font-size:13px;outline:none;transition:border-color .2s;}
+  .modal-input:focus{border-color:var(--accent);}
+  /* OUTCOME BADGES */
+  .outcome-win{background:rgba(34,197,94,.15);color:#22c55e;font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;}
+  .outcome-loss{background:rgba(239,68,68,.15);color:#ef4444;font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;}
+  .outcome-pending{background:rgba(245,158,11,.15);color:#fbbf24;font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;}
+  /* WILLIAMS MINI on cards */
+  .will-mini{display:flex;align-items:center;gap:6px;margin-top:4px;}
+  .will-mini-label{font-family:var(--mono);font-size:8px;color:var(--muted);}
+  .will-mini-bar{flex:1;height:4px;background:var(--subtle);border-radius:2px;overflow:hidden;}
+  .will-mini-fill{height:100%;border-radius:2px;}
+  .will-mini-val{font-family:var(--mono);font-size:9px;font-weight:700;min-width:22px;text-align:right;}
 </style>
 </head>
 <body>
@@ -464,6 +493,7 @@
   <button class="nav-tab" onclick="switchPage('pairs',this)">🔀 Pair Builder</button>
   <button class="nav-tab" onclick="switchPage('extremes',this)">🚨 Extreme Scanner</button>
   <button class="nav-tab" onclick="switchPage('divergence',this)">🔍 Divergence</button>
+  <button class="nav-tab" onclick="switchPage('williams',this)">📊 Williams vs ITS</button>
 </nav>
 
 <main>
@@ -696,6 +726,102 @@
   <div class="diverg-grid" id="diverg-grid"></div>
 </div>
 
+<!-- ═══════════════ WILLIAMS vs ITS PAGE ═══════════════ -->
+<div class="page" id="page-williams">
+  <div class="info-box">📊 <strong>Williams Method</strong> uses the <strong>Commercial COT Index (26-week lookback)</strong> as the primary signal. Extremes ≥90 = Bullish, ≤10 = Bearish. Compare against your ITS score to see which method gives better signals for each market. Log your trades below to track which method outperforms over time.</div>
+
+  <!-- COMPARISON TABLE -->
+  <div class="section-title">Method Comparison — All Markets</div>
+  <div style="overflow-x:auto;margin-bottom:24px;">
+    <table class="williams-table" id="williams-compare-table">
+      <thead>
+        <tr>
+          <th>Market</th>
+          <th>ITS Score</th>
+          <th>ITS Signal</th>
+          <th>Williams<br><span style="font-weight:400;color:var(--muted);font-size:9px;">Comm COT 26W</span></th>
+          <th>Williams Signal</th>
+          <th>Agreement</th>
+          <th>Log</th>
+        </tr>
+      </thead>
+      <tbody id="williams-compare-body">
+        <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px;font-family:var(--mono);font-size:12px;">Fetch COT data first</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SIGNAL LOG -->
+  <div class="section-title">Signal Performance Log</div>
+  <div style="background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:20px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
+      <div style="font-family:var(--mono);font-size:11px;color:var(--muted);">Record which method's signal you traded. Update outcome later to track win rates.</div>
+      <button onclick="showLogModal()" style="background:linear-gradient(135deg,#5b9cf6,#c084fc);color:#fff;border:none;padding:8px 18px;border-radius:8px;font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;">+ Log New Signal</button>
+    </div>
+
+    <!-- SCORE CARDS -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-bottom:16px;" id="williams-scorecards">
+      <div class="wl-scorecard"><div class="wl-scorecard-label">ITS Method</div><div class="wl-scorecard-wins" id="sc-its-wins">0W / 0L</div><div class="wl-scorecard-pct" id="sc-its-pct">—%</div></div>
+      <div class="wl-scorecard"><div class="wl-scorecard-label">Williams Method</div><div class="wl-scorecard-wins" id="sc-will-wins">0W / 0L</div><div class="wl-scorecard-pct" id="sc-will-pct">—%</div></div>
+      <div class="wl-scorecard"><div class="wl-scorecard-label">Both Agreed</div><div class="wl-scorecard-wins" id="sc-both-wins">0W / 0L</div><div class="wl-scorecard-pct" id="sc-both-pct">—%</div></div>
+      <div class="wl-scorecard"><div class="wl-scorecard-label">Total Logged</div><div class="wl-scorecard-wins" id="sc-total">0</div><div class="wl-scorecard-pct" id="sc-pending">0 pending</div></div>
+    </div>
+
+    <!-- LOG TABLE -->
+    <div style="overflow-x:auto;">
+      <table class="williams-table" id="signal-log-table">
+        <thead>
+          <tr>
+            <th>Date</th><th>Market</th><th>Direction</th><th>Method Used</th><th>ITS at Entry</th><th>Williams at Entry</th><th>Outcome</th><th>Notes</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="signal-log-body">
+          <tr><td colspan="9" style="text-align:center;color:var(--muted);padding:16px;font-family:var(--mono);font-size:11px;">No signals logged yet. Click "+ Log New Signal" to start tracking.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- LOG MODAL -->
+<div id="log-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;width:100%;max-width:480px;margin:20px;">
+    <div style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--accent);margin-bottom:16px;">📝 Log COT Signal</div>
+    <div style="display:grid;gap:12px;">
+      <div><label class="modal-label">Market</label>
+        <select id="log-market" class="modal-input">
+          <option value="">Select market…</option>
+          <option>EUR</option><option>GBP</option><option>JPY</option><option>CHF</option>
+          <option>CAD</option><option>AUD</option><option>NZD</option><option>MXN</option>
+          <option>GOLD</option><option>SILVER</option><option>COPPER</option>
+        </select>
+      </div>
+      <div><label class="modal-label">Direction</label>
+        <select id="log-direction" class="modal-input">
+          <option value="LONG">LONG (Buy)</option>
+          <option value="SHORT">SHORT (Sell)</option>
+        </select>
+      </div>
+      <div><label class="modal-label">Method Used</label>
+        <select id="log-method" class="modal-input">
+          <option value="ITS">ITS Method</option>
+          <option value="WILLIAMS">Williams Method</option>
+          <option value="BOTH">Both Agreed</option>
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div><label class="modal-label">ITS Score at Entry</label><input type="number" id="log-its" class="modal-input" placeholder="e.g. 66" min="0" max="100"></div>
+        <div><label class="modal-label">Williams Score at Entry</label><input type="number" id="log-will" class="modal-input" placeholder="e.g. 88" min="0" max="100"></div>
+      </div>
+      <div><label class="modal-label">Notes (optional)</label><input type="text" id="log-notes" class="modal-input" placeholder="e.g. GBP/USD long, H4 OB entry"></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:18px;">
+      <button onclick="saveLogEntry()" style="flex:1;background:linear-gradient(135deg,#5b9cf6,#c084fc);color:#fff;border:none;padding:10px;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px;">Save Signal</button>
+      <button onclick="closeLogModal()" style="background:var(--panel);color:var(--muted);border:1px solid var(--border);padding:10px 16px;border-radius:8px;cursor:pointer;font-size:13px;">Cancel</button>
+    </div>
+  </div>
+</div>
+
 </main>
 <footer>COT Intelligence v7 PRO · Institutional Decision Engine · Forex Engine (Non-Comm 35% · Flow 35% · Curr Strength 20% · Comm 10%) · Metals Engine (Comm 35% · Div 25% · OI 25% · Non-Comm 15%) · NEW v7: Z-Score · Flow Persistence · Acceleration · Confidence % · Probability · Relative Flow Matrix · Data: CFTC</footer>
 
@@ -827,8 +953,202 @@ async function loadData(){
   btn.disabled=false; icon.className=''; icon.textContent='↻';
 }
 
+// ─── WILLIAMS METHOD FUNCTIONS ────────────────────────────────────────────────
+// Larry Williams: Commercial COT Index, 26-week lookback
+// Extremes ≥90 = Bullish, ≤10 = Bearish — opposite of what non-commercials signal
+
+function calcWilliamsIndex(rows, weeks=26){
+  if(!rows||rows.length<5) return null;
+  const slice=rows.slice(0,Math.min(weeks,rows.length));
+  const nets=slice.map(r=>getCommNet(r));
+  const current=nets[0],min=Math.min(...nets),max=Math.max(...nets);
+  if(max===min) return {index:50,current,signal:'neutral',weeks:slice.length};
+  const index=Math.round(((current-min)/(max-min))*100);
+  let signal='neutral';
+  if(index>=90)      signal='bull';
+  else if(index<=10) signal='bear';
+  else if(index>=70) signal='lean-bull';
+  else if(index<=30) signal='lean-bear';
+  return {index,current,signal,weeks:slice.length};
+}
+
+function williamsLabel(w){
+  if(!w) return {text:'N/A',color:var_muted,pill:'—',pillCls:''};
+  const {index,signal}=w;
+  if(signal==='bull')      return {text:`🟢 BULL EXTREME`,color:'#22c55e',pill:'🟢 BULL',pillCls:'bull'};
+  if(signal==='bear')      return {text:`🔴 BEAR EXTREME`,color:'#ef4444',pill:'🔴 BEAR',pillCls:'bear'};
+  if(signal==='lean-bull') return {text:`Leaning Bull`,color:'#86efac',pill:`↑ ${index}`,pillCls:'lean-b'};
+  if(signal==='lean-bear') return {text:`Leaning Bear`,color:'#fca5a5',pill:`↓ ${index}`,pillCls:'lean-s'};
+  return {text:`Neutral`,color:'#f59e0b',pill:`~ ${index}`,pillCls:'neutral'};
+}
+
+// Compare ITS direction vs Williams direction
+function compareSignals(itsScore, williamsW){
+  if(!williamsW) return {agree:false,text:'No Williams data',cls:'w-diverge'};
+  const itsDir=itsScore>=60?'bull':itsScore<=40?'bear':'neutral';
+  const willDir=williamsW.signal==='bull'||williamsW.signal==='lean-bull'?'bull':
+                williamsW.signal==='bear'||williamsW.signal==='lean-bear'?'bear':'neutral';
+  if(itsDir==='neutral'&&willDir==='neutral') return {agree:true,text:'Both Neutral',cls:'w-agree'};
+  if(itsDir===willDir) return {agree:true,text:'✅ Aligned',cls:'w-agree'};
+  if(itsDir==='neutral'||willDir==='neutral') return {agree:false,text:'⚠ One Neutral',cls:'w-diverge'};
+  return {agree:false,text:'⚡ DIVERGE',cls:'w-diverge'};
+}
+
+// ─── SIGNAL LOG (localStorage) ────────────────────────────────────────────────
+const LOG_KEY='cot_signal_log_v1';
+
+function getLog(){
+  try{ return JSON.parse(localStorage.getItem(LOG_KEY)||'[]'); }
+  catch(e){ return []; }
+}
+function saveLog(entries){
+  try{ localStorage.setItem(LOG_KEY,JSON.stringify(entries)); } catch(e){}
+}
+
+function showLogModal(market,itsVal,willVal){
+  const modal=document.getElementById('log-modal');
+  modal.style.display='flex';
+  if(market) document.getElementById('log-market').value=market;
+  if(itsVal!==undefined) document.getElementById('log-its').value=itsVal;
+  if(willVal!==undefined) document.getElementById('log-will').value=willVal;
+}
+function closeLogModal(){
+  document.getElementById('log-modal').style.display='none';
+  ['log-market','log-direction','log-method','log-its','log-will','log-notes'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el.tagName==='SELECT') el.selectedIndex=0; else el.value='';
+  });
+}
+
+function saveLogEntry(){
+  const market=document.getElementById('log-market').value;
+  const direction=document.getElementById('log-direction').value;
+  const method=document.getElementById('log-method').value;
+  const itsVal=document.getElementById('log-its').value;
+  const willVal=document.getElementById('log-will').value;
+  const notes=document.getElementById('log-notes').value;
+  if(!market){alert('Please select a market');return;}
+  const entries=getLog();
+  entries.unshift({
+    id:Date.now(),
+    date:new Date().toISOString().slice(0,10),
+    market,direction,method,
+    itsScore:itsVal||'—',
+    willScore:willVal||'—',
+    notes,
+    outcome:'PENDING'
+  });
+  saveLog(entries);
+  closeLogModal();
+  renderSignalLog();
+}
+
+function updateOutcome(id,outcome){
+  const entries=getLog();
+  const entry=entries.find(e=>e.id===id);
+  if(entry){ entry.outcome=outcome; saveLog(entries); renderSignalLog(); }
+}
+
+function deleteLogEntry(id){
+  if(!confirm('Delete this entry?')) return;
+  const entries=getLog().filter(e=>e.id!==id);
+  saveLog(entries);
+  renderSignalLog();
+}
+
+function renderSignalLog(){
+  const entries=getLog();
+  const body=document.getElementById('signal-log-body');
+  if(!body) return;
+
+  // Stats
+  const byMethod={ITS:{w:0,l:0},WILLIAMS:{w:0,l:0},BOTH:{w:0,l:0}};
+  entries.forEach(e=>{
+    const m=e.method;
+    if(byMethod[m]){
+      if(e.outcome==='WIN') byMethod[m].w++;
+      else if(e.outcome==='LOSS') byMethod[m].l++;
+    }
+  });
+  const pct=(w,l)=>{ const t=w+l; return t>0?Math.round(w/t*100)+'%':'—%'; };
+  const fmt2=(w,l)=>`${w}W / ${l}L`;
+
+  document.getElementById('sc-its-wins').textContent=fmt2(byMethod.ITS.w,byMethod.ITS.l);
+  document.getElementById('sc-its-pct').textContent=pct(byMethod.ITS.w,byMethod.ITS.l);
+  document.getElementById('sc-will-wins').textContent=fmt2(byMethod.WILLIAMS.w,byMethod.WILLIAMS.l);
+  document.getElementById('sc-will-pct').textContent=pct(byMethod.WILLIAMS.w,byMethod.WILLIAMS.l);
+  document.getElementById('sc-both-wins').textContent=fmt2(byMethod.BOTH.w,byMethod.BOTH.l);
+  document.getElementById('sc-both-pct').textContent=pct(byMethod.BOTH.w,byMethod.BOTH.l);
+  document.getElementById('sc-total').textContent=entries.length;
+  document.getElementById('sc-pending').textContent=entries.filter(e=>e.outcome==='PENDING').length+' pending';
+
+  if(entries.length===0){
+    body.innerHTML=`<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:16px;font-family:var(--mono);font-size:11px;">No signals logged yet.</td></tr>`;
+    return;
+  }
+  body.innerHTML=entries.map(e=>{
+    const outCls=e.outcome==='WIN'?'outcome-win':e.outcome==='LOSS'?'outcome-loss':'outcome-pending';
+    const dirColor=e.direction==='LONG'?'#22c55e':'#ef4444';
+    return `<tr>
+      <td style="color:var(--muted)">${e.date}</td>
+      <td style="font-weight:700">${e.market}</td>
+      <td style="color:${dirColor};font-weight:700">${e.direction}</td>
+      <td><span style="font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;background:${e.method==='ITS'?'rgba(91,156,246,.15)':e.method==='WILLIAMS'?'rgba(34,197,94,.15)':'rgba(168,85,247,.15)'};color:${e.method==='ITS'?'#5b9cf6':e.method==='WILLIAMS'?'#22c55e':'#c084fc'}">${e.method}</span></td>
+      <td style="color:#5b9cf6">${e.itsScore}</td>
+      <td style="color:#22c55e">${e.willScore}</td>
+      <td>
+        <select onchange="updateOutcome(${e.id},this.value)" style="background:var(--panel);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:9px;padding:2px 6px;">
+          <option ${e.outcome==='PENDING'?'selected':''}>PENDING</option>
+          <option ${e.outcome==='WIN'?'selected':''}>WIN</option>
+          <option ${e.outcome==='LOSS'?'selected':''}>LOSS</option>
+        </select>
+      </td>
+      <td style="color:var(--muted);font-size:10px;">${e.notes||'—'}</td>
+      <td><button onclick="deleteLogEntry(${e.id})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;" title="Delete">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ─── WILLIAMS vs ITS COMPARISON PAGE ─────────────────────────────────────────
+function renderWilliamsPage(){
+  const body=document.getElementById('williams-compare-body');
+  if(!body) return;
+  if(Object.keys(allData).length===0){
+    body.innerHTML=`<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px;font-family:var(--mono);font-size:12px;">Fetch COT data first</td></tr>`;
+    renderSignalLog();
+    return;
+  }
+  const rows=MARKETS.filter(m=>allData[m.id]).map(m=>{
+    const rows=allData[m.id];
+    const isMetals=m.cat==='metals';
+    const its=calcITS(rows,isMetals,m.id);
+    const itsLbl=itsLabel(its);
+    const w=calcWilliamsIndex(rows,26);
+    const wLbl=williamsLabel(w);
+    const compare=compareSignals(its,w);
+    return {m,its,itsLbl,w,wLbl,compare};
+  });
+
+  body.innerHTML=rows.map(({m,its,itsLbl,w,wLbl,compare})=>{
+    const wColor=w?cotIndexColor(w.index):var_muted;
+    const itsVal=allData[m.id]?calcITS(allData[m.id],m.cat==='metals',m.id):0;
+    const wVal=w?w.index:0;
+    return `<tr>
+      <td style="font-weight:700">${m.name}</td>
+      <td style="font-family:var(--mono);color:${itsLbl.color};font-weight:700">${its}</td>
+      <td><span class="w-signal-pill" style="background:${its>=60?'rgba(34,197,94,.15)':its<=40?'rgba(239,68,68,.15)':'rgba(245,158,11,.15)'};color:${itsLbl.color}">${itsLbl.text}</span></td>
+      <td style="font-family:var(--mono);color:${wColor};font-weight:700">${w?w.index:'-'}<span style="color:var(--muted);font-size:9px;margin-left:4px;">/100</span></td>
+      <td><span class="w-signal-pill" style="background:${w&&w.signal==='bull'?'rgba(34,197,94,.15)':w&&w.signal==='bear'?'rgba(239,68,68,.15)':'rgba(245,158,11,.15)'};color:${wLbl.color}">${wLbl.text}</span></td>
+      <td><span class="${compare.cls}">${compare.text}</span></td>
+      <td><button class="w-log-btn" onclick="showLogModal('${m.id}',${itsVal},${wVal})">+ Log</button></td>
+    </tr>`;
+  }).join('');
+
+  renderSignalLog();
+}
+
 function renderAll(){
-  renderCards(); renderStrengthPage(); renderPairsPage(); renderExtremesPage(); renderDivergencePage(); renderDashboard(); renderDisaggPage(); renderMatrixPage();
+  renderCards(); renderStrengthPage(); renderPairsPage(); renderExtremesPage(); renderDivergencePage(); renderDashboard(); renderDisaggPage(); renderMatrixPage(); renderWilliamsPage();
 }
 
 function switchPage(page,btn){
@@ -1657,6 +1977,15 @@ function renderCards(){
         <div class="mom-cell"><div class="mom-cell-label">8W</div><div class="mom-cell-val" style="color:${flow.w8>=0?'#22c55e':'#ef4444'}">${fmtChange(flow.w8)}</div></div>
         <div class="mom-cell"><div class="mom-cell-label">12W</div><div class="mom-cell-val" style="color:${flow.w12>=0?'#22c55e':'#ef4444'}">${fmtChange(flow.w12)}</div></div>
       </div>`;
+    // Add Williams mini indicator
+    const wCard=calcWilliamsIndex(rows,26);
+    const wLblCard=williamsLabel(wCard);
+    const wBarColor=wCard?cotIndexColor(wCard.index):var_muted;
+    card.innerHTML+=`<div class="will-mini">
+      <span class="will-mini-label" style="color:#22c55e">WIL</span>
+      <div class="will-mini-bar"><div class="will-mini-fill" style="width:${wCard?wCard.index:50}%;background:${wBarColor}"></div></div>
+      <span class="will-mini-val" style="color:${wLblCard.color}">${wCard?wCard.index:'—'}</span>
+    </div>`;
     card.onclick=()=>showDetail(m.id);
     grid.appendChild(card);
   });
@@ -1877,7 +2206,49 @@ function showDetail(id){
   drawChart(rows);
   document.getElementById('d-insights').innerHTML=buildInsights(m,r,net,flow,sig,commNet,ci,pct,its,itsLbl,isMetals);
 
-  // ── INSTITUTIONAL METRICS: inject into detail panel ──
+  // ── WILLIAMS ANALYSIS in detail panel ──
+  let willEl=document.getElementById('d-williams');
+  if(!willEl){
+    willEl=document.createElement('div');
+    willEl.id='d-williams';
+    willEl.style.marginTop='14px';
+    document.getElementById('detail-panel').appendChild(willEl);
+  }
+  const wDet=calcWilliamsIndex(rows,26);
+  const wLblDet=williamsLabel(wDet);
+  const compareDet=compareSignals(its,wDet);
+  const wColor2=wDet?cotIndexColor(wDet.index):var_muted;
+
+  willEl.innerHTML=`
+  <div style="font-size:11px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;padding-bottom:8px;border-top:1px solid var(--border);padding-top:14px;display:flex;align-items:center;gap:8px;"><span style="width:6px;height:6px;border-radius:50%;background:#22c55e;display:inline-block;"></span> Williams Method Analysis (26-Week Commercial COT)</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px;">
+    <div style="background:var(--subtle);border-radius:8px;padding:12px;">
+      <div style="font-family:var(--mono);font-size:8px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Williams Index (26W Comm)</div>
+      <div style="font-family:var(--mono);font-size:24px;font-weight:700;color:${wColor2}">${wDet?wDet.index:'—'}</div>
+      <div style="font-family:var(--mono);font-size:10px;color:${wLblDet.color};margin-top:3px;">${wLblDet.text}</div>
+    </div>
+    <div style="background:var(--subtle);border-radius:8px;padding:12px;">
+      <div style="font-family:var(--mono);font-size:8px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">ITS Score</div>
+      <div style="font-family:var(--mono);font-size:24px;font-weight:700;color:${itsLbl.color}">${its}</div>
+      <div style="font-family:var(--mono);font-size:10px;color:${itsLbl.color};margin-top:3px;">${itsLbl.text}</div>
+    </div>
+    <div style="background:var(--subtle);border-radius:8px;padding:12px;">
+      <div style="font-family:var(--mono);font-size:8px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Agreement</div>
+      <div style="font-family:var(--mono);font-size:16px;font-weight:700;margin-top:6px;"><span class="${compareDet.cls}" style="font-size:11px;">${compareDet.text}</span></div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:6px;">${compareDet.agree?'Both methods same direction':'Methods disagree — wait for alignment'}</div>
+    </div>
+  </div>
+  ${wDet?`<div style="background:var(--subtle);border-radius:8px;padding:12px;font-size:11px;color:var(--text);line-height:1.7;">
+    <strong style="color:#22c55e">Williams Method:</strong> Commercial net = ${fmt(wDet.current)} contracts. 26-week COT Index = ${wDet.index}/100.
+    ${wDet.signal==='bull'?`<span style="color:#22c55e;font-weight:600"> 🟢 EXTREME BULL — Commercials near most long in 26 weeks. Larry Williams would consider this a BUY signal.</span>`:
+      wDet.signal==='bear'?`<span style="color:#ef4444;font-weight:600"> 🔴 EXTREME BEAR — Commercials near most short in 26 weeks. Larry Williams would consider this a SELL signal.</span>`:
+      wDet.index>=70?` Commercials leaning bullish (${wDet.index}/100) but not at extreme threshold (≥90). Williams would <strong>wait</strong> for ≥90 to act.`:
+      wDet.index<=30?` Commercials leaning bearish (${wDet.index}/100) but not at extreme threshold (≤10). Williams would <strong>wait</strong> for ≤10 to act.`:
+      ` Commercials in neutral zone (${wDet.index}/100). Williams method has no signal here — stand aside until extreme (≤10 or ≥90).`}
+  </div>`:'<div style="color:var(--muted);font-size:11px;">Need data to calculate Williams Index.</div>'}
+  <div style="margin-top:10px;text-align:right;">
+    <button onclick="showLogModal('${m.id}',${its},${wDet?wDet.index:''})" class="w-log-btn" style="padding:5px 14px;font-size:10px;">+ Log This Signal</button>
+  </div>`;
   let instEl=document.getElementById('d-institutional');
   if(!instEl){
     instEl=document.createElement('div');
@@ -2603,7 +2974,7 @@ function renderDivergencePage(){
   }).join('');
 }
 
-window.addEventListener('load',()=>{renderCustomPairChips();});
+window.addEventListener('load',()=>{renderCustomPairChips();renderSignalLog();});
 window.addEventListener('resize',()=>{if(selectedId&&allData[selectedId]) drawChart(allData[selectedId]);});
 </script>
 </body>
