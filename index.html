@@ -209,6 +209,54 @@
   .strength-score{font-family:var(--mono);font-size:12px;font-weight:700;width:40px;text-align:right;flex-shrink:0;}
   .strength-mom{font-family:var(--mono);font-size:9px;width:44px;text-align:right;flex-shrink:0;}
 
+  /* CUSTOM PAIR BUILDER */
+  .custom-pair-box{background:linear-gradient(135deg,#1a1040,#0f172a);border:1px solid rgba(168,85,247,.3);border-radius:12px;padding:18px 20px;margin-bottom:20px;}
+  .custom-pair-title{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--purple);display:flex;align-items:center;gap:10px;margin-bottom:4px;}
+  .custom-pair-badge{font-family:var(--sans);font-size:9px;font-weight:600;background:rgba(192,132,252,.15);color:var(--purple);padding:2px 8px;border-radius:20px;letter-spacing:.03em;}
+  .custom-pair-sub{font-size:12px;color:var(--muted);margin-bottom:14px;}
+  .custom-pair-input-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
+  .custom-pair-input{flex:1;min-width:200px;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-family:var(--mono);font-size:14px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;outline:none;transition:border-color .2s;}
+  .custom-pair-input:focus{border-color:var(--accent);}
+  .custom-pair-input::placeholder{color:var(--muted);text-transform:none;font-family:var(--sans);font-weight:400;letter-spacing:0;}
+  .custom-pair-btn{background:linear-gradient(135deg,#5b9cf6,#c084fc);color:#fff;border:none;padding:10px 22px;border-radius:8px;font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;transition:opacity .2s;white-space:nowrap;}
+  .custom-pair-btn:hover{opacity:.88;}
+  .custom-pair-btn:disabled{opacity:.4;cursor:default;}
+  .custom-pair-chips{display:flex;gap:6px;flex-wrap:wrap;}
+  .custom-pair-chip{font-family:var(--mono);font-size:10px;font-weight:600;background:var(--subtle);border:1px solid var(--border);color:var(--muted);padding:4px 10px;border-radius:20px;cursor:pointer;transition:all .15s;}
+  .custom-pair-chip:hover{border-color:var(--accent);color:var(--accent);}
+  .custom-pair-error{font-family:var(--mono);font-size:12px;color:var(--bear);background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:8px;padding:10px 14px;margin-top:14px;}
+
+  /* CUSTOM PAIR REPORT */
+  .cpr-wrap{margin-top:16px;border-top:1px solid var(--border);padding-top:16px;}
+  .cpr-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;}
+  .cpr-title{font-family:var(--mono);font-size:24px;font-weight:700;}
+  .cpr-signal-pill{font-family:var(--mono);font-size:11px;font-weight:700;padding:5px 14px;border-radius:20px;text-transform:uppercase;letter-spacing:.04em;}
+  .cpr-score-row{display:flex;align-items:center;gap:16px;margin-bottom:16px;flex-wrap:wrap;}
+  .cpr-score-big{font-family:var(--mono);font-size:38px;font-weight:700;}
+  .cpr-score-sub{font-size:11px;color:var(--muted);font-family:var(--mono);}
+  .cpr-vs-row{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:center;margin-bottom:16px;}
+  @media(max-width:650px){.cpr-vs-row{grid-template-columns:1fr;}}
+  .cpr-leg{background:var(--subtle);border-radius:10px;padding:14px;}
+  .cpr-leg-name{font-family:var(--mono);font-size:15px;font-weight:700;margin-bottom:6px;}
+  .cpr-leg-its{font-family:var(--mono);font-size:26px;font-weight:700;margin-bottom:4px;}
+  .cpr-leg-label{font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;display:inline-block;margin-bottom:8px;}
+  .cpr-leg-stat-row{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--muted);padding:3px 0;border-top:1px solid var(--border);margin-top:6px;}
+  .cpr-leg-stat-val{font-weight:700;}
+  .cpr-vs-divider{font-family:var(--mono);font-size:13px;color:var(--muted);text-align:center;font-weight:700;}
+  .cpr-section{background:var(--subtle);border-radius:10px;padding:14px;margin-bottom:12px;}
+  .cpr-section-title{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--cyan);margin-bottom:10px;}
+  .cpr-flow-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  @media(max-width:650px){.cpr-flow-grid{grid-template-columns:repeat(2,1fr);}}
+  .cpr-flow-cell{background:var(--panel);border-radius:6px;padding:8px 10px;text-align:center;}
+  .cpr-flow-cell-label{font-family:var(--mono);font-size:8px;color:var(--muted);text-transform:uppercase;margin-bottom:3px;}
+  .cpr-flow-cell-val{font-family:var(--mono);font-size:13px;font-weight:700;}
+  .cpr-checklist{display:flex;flex-wrap:wrap;gap:5px;}
+  .cpr-check{font-family:var(--mono);font-size:9px;padding:3px 8px;border-radius:4px;}
+  .cpr-check.pass{background:rgba(34,197,94,.12);color:#86efac;}
+  .cpr-check.fail{background:rgba(239,68,68,.08);color:#fca5a5;}
+  .cpr-verdict{font-size:13px;line-height:1.7;color:var(--text);}
+  .cpr-verdict strong{color:var(--accent);}
+
   /* PAIRS PAGE */
   .pairs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-bottom:20px;}
   .pair-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px;position:relative;overflow:hidden;}
@@ -602,6 +650,19 @@
 <!-- ═══════════════ PAIR BUILDER PAGE ═══════════════ -->
 <div class="page" id="page-pairs">
   <div class="info-box">🔀 Pair scores = Base ITS minus Quote ITS. Includes 4-week momentum differential. Higher absolute score = stronger flow divergence = better setup.</div>
+
+  <!-- ═══════════ CUSTOM PAIR BUILDER ═══════════ -->
+  <div class="custom-pair-box">
+    <div class="custom-pair-title">🛠️ Custom Pair Analyzer<span class="custom-pair-badge">Any base / quote</span></div>
+    <div class="custom-pair-sub">Type any pair — e.g. "EUR CHF", "EURCHF", "GBP/JPY" — and get a full COT report for that exact pair.</div>
+    <div class="custom-pair-input-row">
+      <input type="text" id="custom-pair-input" class="custom-pair-input" placeholder="e.g. EURCHF or EUR CHF" maxlength="9" onkeydown="if(event.key==='Enter')analyzeCustomPair()">
+      <button class="custom-pair-btn" id="custom-pair-btn" onclick="analyzeCustomPair()">Analyze Pair</button>
+    </div>
+    <div class="custom-pair-chips" id="custom-pair-chips"></div>
+    <div id="custom-pair-result"></div>
+  </div>
+
   <div id="pairs-status"></div>
   <div class="pairs-grid" id="pairs-grid"></div>
 </div>
@@ -2248,7 +2309,200 @@ function renderPairsPage(){
   }).join('');
 }
 
-// ─── EXTREME SCANNER ──────────────────────────────────────────────────────────
+// ─── CUSTOM PAIR ANALYZER ──────────────────────────────────────────────────────
+// Lets the user type ANY two currencies (e.g. "EUR CHF", "EURCHF", "GBP/JPY")
+// and get a full COT report for that exact pair — same engine as Pair Builder,
+// but with the deep-dive breakdown (flow, persistence, confidence, checklist)
+// normally only seen in the per-market detail panel.
+
+const ALL_CCY_IDS=['EUR','GBP','JPY','CHF','CAD','AUD','NZD','MXN','USD'];
+const CCY_NAMES={EUR:'Euro',GBP:'British Pound',JPY:'Japanese Yen',CHF:'Swiss Franc',CAD:'Canadian Dollar',AUD:'Australian Dollar',NZD:'New Zealand Dollar',MXN:'Mexican Peso',USD:'US Dollar'};
+
+function renderCustomPairChips(){
+  const common=['EURUSD','GBPUSD','EURCHF','GBPJPY','AUDNZD','EURGBP','USDCAD','NZDCHF'];
+  const el=document.getElementById('custom-pair-chips');
+  if(!el) return;
+  el.innerHTML=common.map(p=>`<span class="custom-pair-chip" onclick="document.getElementById('custom-pair-input').value='${p}';analyzeCustomPair()">${p.slice(0,3)}/${p.slice(3)}</span>`).join('');
+}
+
+// Parses flexible input: "EURCHF", "EUR CHF", "EUR/CHF", "eur-chf" → ['EUR','CHF']
+function parseCustomPairInput(raw){
+  const cleaned=raw.toUpperCase().replace(/[^A-Z]/g,' ').trim();
+  let parts=cleaned.split(/\s+/).filter(Boolean);
+  if(parts.length===1&&parts[0].length===6){
+    parts=[parts[0].slice(0,3),parts[0].slice(3,6)];
+  }
+  if(parts.length!==2) return null;
+  const [base,quote]=parts;
+  if(!ALL_CCY_IDS.includes(base)||!ALL_CCY_IDS.includes(quote)) return null;
+  if(base===quote) return null;
+  return [base,quote];
+}
+
+function getCcyITS(id){
+  // USD is synthetic (no direct CFTC contract) — derive from peer basket
+  if(id==='USD') return Math.round(calcUSDScore(true)/2+50);
+  if(!allData[id]) return null;
+  return calcITS(allData[id],false,id);
+}
+function getCcyConfidence(id){
+  if(id==='USD'||!allData[id]||allData[id].length<10) return null;
+  return calcConfidence(allData[id],false,id);
+}
+
+async function analyzeCustomPair(){
+  const input=document.getElementById('custom-pair-input');
+  const resultEl=document.getElementById('custom-pair-result');
+  const btn=document.getElementById('custom-pair-btn');
+  const raw=input.value.trim();
+  if(!raw){
+    resultEl.innerHTML=`<div class="custom-pair-error">⚠ Enter a pair first — e.g. EURCHF</div>`;
+    return;
+  }
+  const parsed=parseCustomPairInput(raw);
+  if(!parsed){
+    resultEl.innerHTML=`<div class="custom-pair-error">⚠ Couldn't read "${raw}". Use two valid currency codes from: ${ALL_CCY_IDS.join(', ')} — e.g. "EUR CHF" or "EURCHF".</div>`;
+    return;
+  }
+  const [base,quote]=parsed;
+  if(Object.keys(allData).length===0){
+    resultEl.innerHTML=`<div class="custom-pair-error">⚠ No COT data loaded yet. Click "Refresh Data" at the top first.</div>`;
+    return;
+  }
+  if((base!=='USD'&&!allData[base])||(quote!=='USD'&&!allData[quote])){
+    const missing=[base,quote].filter(id=>id!=='USD'&&!allData[id]);
+    resultEl.innerHTML=`<div class="custom-pair-error">⚠ Missing data for ${missing.join(', ')}. Try refreshing data, or this market may not be tracked.</div>`;
+    return;
+  }
+
+  btn.disabled=true; btn.textContent='Analyzing…';
+  resultEl.innerHTML=`<div class="custom-pair-error" style="color:var(--cyan);background:rgba(56,189,248,.08);border-color:rgba(56,189,248,.25)">⏳ Crunching ${base}/${quote} COT data…</div>`;
+
+  // tiny delay so the button state visibly updates before sync compute
+  await new Promise(r=>setTimeout(r,120));
+
+  try{
+    renderCustomPairReport(base,quote);
+  } finally {
+    btn.disabled=false; btn.textContent='Analyze Pair';
+  }
+}
+
+function renderCustomPairReport(base,quote){
+  const resultEl=document.getElementById('custom-pair-result');
+  const baseITS=getCcyITS(base), quoteITS=getCcyITS(quote);
+  if(baseITS===null||quoteITS===null){
+    resultEl.innerHTML=`<div class="custom-pair-error">⚠ Could not compute ITS for ${baseITS===null?base:quote}.</div>`;
+    return;
+  }
+  const pairScore=baseITS-quoteITS; // -100..+100 differential, can exceed in edge cases — clamp display
+  const abs=Math.abs(pairScore);
+  const isLong=pairScore>0;
+  const cls=abs>80?(isLong?'strong-buy':'strong-sell'):abs>40?(isLong?'weak-buy':'weak-sell'):'neutral-pair';
+  const pillLabel=abs>80?(isLong?'STRONG BUY':'STRONG SELL'):abs>40?(isLong?'BUY':'SELL'):'NEUTRAL';
+  const pillColor=abs>80?(isLong?'#22c55e':'#ef4444'):abs>40?(isLong?'#86efac':'#fca5a5'):'#f59e0b';
+
+  const baseFlow=base==='USD'?{wow:0,w4:0,w8:0,w12:0}:getFlowChanges(allData[base]);
+  const quoteFlow=quote==='USD'?{wow:0,w4:0,w8:0,w12:0}:getFlowChanges(allData[quote]);
+  const flowDiff4=(baseFlow.w4||0)-(quoteFlow.w4||0);
+  const flowDiff8=(baseFlow.w8||0)-(quoteFlow.w8||0);
+  const flowDiff12=(baseFlow.w12||0)-(quoteFlow.w12||0);
+  const aligned=flowDiff4*flowDiff8>0&&flowDiff8*flowDiff12>0;
+
+  const basePersist=base==='USD'?null:calcFlowPersistence(allData[base]);
+  const quotePersist=quote==='USD'?null:calcFlowPersistence(allData[quote]);
+  const baseConf=getCcyConfidence(base);
+  const quoteConf=getCcyConfidence(quote);
+  const baseZ=base==='USD'?null:calcZScore(allData[base]);
+  const quoteZ=quote==='USD'?null:calcZScore(allData[quote]);
+  const baseCrowd=base==='USD'?null:calcCrowdingRatio(allData[base]);
+  const quoteCrowd=quote==='USD'?null:calcCrowdingRatio(allData[quote]);
+
+  const baseLbl=itsLabel(baseITS), quoteLbl=itsLabel(quoteITS);
+
+  // Combined checklist — treats this exactly like the pair builder's strongest setups,
+  // but expressed for this specific custom pair
+  const checks=[
+    {label:`${base} ITS Direction`, pass: isLong? baseITS>=55 : baseITS<=45},
+    {label:`${quote} ITS Direction`, pass: isLong? quoteITS<=45 : quoteITS>=55},
+    {label:'4W/8W/12W Aligned', pass: aligned},
+    {label:`${base} Not Overcrowded`, pass: !baseCrowd || Math.abs(baseCrowd.ratio)<35},
+    {label:`${quote} Not Overcrowded`, pass: !quoteCrowd || Math.abs(quoteCrowd.ratio)<35},
+    {label:`${base} Z-Score Sane`, pass: !baseZ || Math.abs(baseZ.z)<2.5},
+    {label:`${quote} Z-Score Sane`, pass: !quoteZ || Math.abs(quoteZ.z)<2.5},
+  ];
+  const passCount=checks.filter(c=>c.pass).length;
+  const confPct=Math.round((passCount/checks.length)*100);
+
+  // Verdict narrative
+  let verdict='';
+  if(abs>80){
+    verdict=`<strong>${isLong?base:quote} dominance</strong> — ${base} ITS ${baseITS} vs ${quote} ITS ${quoteITS} is a ${abs}-point gap, among the widest spreads possible. `;
+  } else if(abs>40){
+    verdict=`Moderate divergence — ${base}/${quote} shows a ${abs}-point ITS gap, favoring ${isLong?base:quote}. `;
+  } else {
+    verdict=`Narrow divergence (${abs} pts) — ${base} and ${quote} speculative positioning is fairly balanced right now. Lower-conviction setup. `;
+  }
+  if(aligned){
+    verdict+=`Flow is <strong>aligned across 4W/8W/12W</strong> in the same relative direction, reinforcing the directional bias. `;
+  } else {
+    verdict+=`Flow momentum is <strong>mixed across timeframes</strong> — short-term and longer-term flow disagree, so conviction is lower than the raw score suggests. `;
+  }
+  if(basePersist&&basePersist.streak>=5) verdict+=`${base} has a ${basePersist.streak}-week ${basePersist.dir==='bull'?'buying':'selling'} streak. `;
+  if(quotePersist&&quotePersist.streak>=5) verdict+=`${quote} has a ${quotePersist.streak}-week ${quotePersist.dir==='bull'?'buying':'selling'} streak. `;
+  if(baseCrowd&&Math.abs(baseCrowd.ratio)>=30) verdict+=`⚠ ${base} positioning is crowded (${baseCrowd.ratio}% of OI) — reversal risk on that leg. `;
+  if(quoteCrowd&&Math.abs(quoteCrowd.ratio)>=30) verdict+=`⚠ ${quote} positioning is crowded (${quoteCrowd.ratio}% of OI) — reversal risk on that leg. `;
+
+  function legCard(id,its,lbl,flow,persist,z,crowd,conf){
+    const persistLbl=persist?persistenceLabel(persist):null;
+    return `<div class="cpr-leg">
+      <div class="cpr-leg-name">${id} <span style="font-size:10px;color:var(--muted);font-weight:400">${CCY_NAMES[id]||''}</span></div>
+      <div class="cpr-leg-label" style="background:rgba(255,255,255,.06);color:${lbl.color}">${lbl.text}</div>
+      <div class="cpr-leg-its" style="color:${lbl.color}">${its}</div>
+      <div class="cpr-leg-stat-row"><span>4W Flow</span><span class="cpr-leg-stat-val" style="color:${(flow.w4||0)>=0?'#22c55e':'#ef4444'}">${fmtChange(flow.w4||0)}</span></div>
+      <div class="cpr-leg-stat-row"><span>8W Flow</span><span class="cpr-leg-stat-val" style="color:${(flow.w8||0)>=0?'#22c55e':'#ef4444'}">${fmtChange(flow.w8||0)}</span></div>
+      ${persist?`<div class="cpr-leg-stat-row"><span>Streak</span><span class="cpr-leg-stat-val" style="color:${persistLbl.color}">${persist.dir==='none'?'—':persist.streak+'wk '+(persist.dir==='bull'?'▲':'▼')}</span></div>`:''}
+      ${z?`<div class="cpr-leg-stat-row"><span>Z-Score</span><span class="cpr-leg-stat-val" style="color:${Math.abs(z.z)>=2?'#ef4444':Math.abs(z.z)>=1.5?'#f59e0b':'#86efac'}">${z.z}σ</span></div>`:''}
+      ${crowd?`<div class="cpr-leg-stat-row"><span>Net/OI</span><span class="cpr-leg-stat-val">${crowd.ratio}%</span></div>`:''}
+      ${conf?`<div class="cpr-leg-stat-row"><span>Confidence</span><span class="cpr-leg-stat-val" style="color:${conf.confidence>=70?'#22c55e':conf.confidence>=50?'#f59e0b':'#ef4444'}">${conf.confidence}%</span></div>`:''}
+    </div>`;
+  }
+
+  resultEl.innerHTML=`
+    <div class="cpr-wrap">
+      <div class="cpr-head">
+        <div class="cpr-title">${base}/${quote}</div>
+        <span class="pair-signal-pill ${cls}" style="font-size:11px;">${pillLabel}</span>
+      </div>
+      <div class="cpr-score-row">
+        <div class="cpr-score-big" style="color:${pillColor}">${pairScore>0?'+':''}${pairScore}</div>
+        <div class="cpr-score-sub">Pair Score (${base} ITS − ${quote} ITS)<br>Checklist Confidence: <span style="color:${confPct>=70?'#22c55e':confPct>=50?'#f59e0b':'#ef4444'}">${confPct}%</span> (${passCount}/${checks.length})</div>
+      </div>
+      <div class="cpr-vs-row">
+        ${legCard(base,baseITS,baseLbl,baseFlow,basePersist,baseZ,baseCrowd,baseConf)}
+        <div class="cpr-vs-divider">VS</div>
+        ${legCard(quote,quoteITS,quoteLbl,quoteFlow,quotePersist,quoteZ,quoteCrowd,quoteConf)}
+      </div>
+      <div class="cpr-section">
+        <div class="cpr-section-title">📊 Relative Flow Differential</div>
+        <div class="cpr-flow-grid">
+          <div class="cpr-flow-cell"><div class="cpr-flow-cell-label">4W Diff</div><div class="cpr-flow-cell-val" style="color:${flowDiff4>=0?'#22c55e':'#ef4444'}">${fmtChange(flowDiff4)}</div></div>
+          <div class="cpr-flow-cell"><div class="cpr-flow-cell-label">8W Diff</div><div class="cpr-flow-cell-val" style="color:${flowDiff8>=0?'#22c55e':'#ef4444'}">${fmtChange(flowDiff8)}</div></div>
+          <div class="cpr-flow-cell"><div class="cpr-flow-cell-label">12W Diff</div><div class="cpr-flow-cell-val" style="color:${flowDiff12>=0?'#22c55e':'#ef4444'}">${fmtChange(flowDiff12)}</div></div>
+        </div>
+      </div>
+      <div class="cpr-section">
+        <div class="cpr-section-title">✅ Setup Checklist</div>
+        <div class="cpr-checklist">${checks.map(c=>`<span class="cpr-check ${c.pass?'pass':'fail'}">${c.pass?'✓':'✗'} ${c.label}</span>`).join('')}</div>
+      </div>
+      <div class="cpr-section">
+        <div class="cpr-section-title">📝 AI Verdict</div>
+        <div class="cpr-verdict">${verdict}</div>
+      </div>
+    </div>`;
+}
+
+
 function renderExtremesPage(){
   if(Object.keys(allData).length===0) return;
   const grid=document.getElementById('extremes-grid');
@@ -2349,7 +2603,7 @@ function renderDivergencePage(){
   }).join('');
 }
 
-window.addEventListener('load',()=>{});
+window.addEventListener('load',()=>{renderCustomPairChips();});
 window.addEventListener('resize',()=>{if(selectedId&&allData[selectedId]) drawChart(allData[selectedId]);});
 </script>
 </body>
