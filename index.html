@@ -649,7 +649,7 @@
 
 <!-- ═══════════════ PAIR BUILDER PAGE ═══════════════ -->
 <div class="page" id="page-pairs">
-  <div class="info-box">🔀 Pair scores = Base ITS minus Quote ITS. Includes 4-week momentum differential. Higher absolute score = stronger flow divergence = better setup.</div>
+  <div class="info-box">🔀 Pair scores = Base ITS (0–100) minus Quote ITS (0–100). Max score ±100. Higher absolute score = stronger institutional flow divergence = better setup. Same formula used in Custom Pair Analyzer.</div>
 
   <!-- ═══════════ CUSTOM PAIR BUILDER ═══════════ -->
   <div class="custom-pair-box">
@@ -1574,12 +1574,12 @@ function renderITSGrid(){
 
 function renderTopTrades(){
   const grid=document.getElementById('top-trades-grid');
-  // Build ITS-based pair scores
+  // Build ITS-based pair scores — raw ITS 0-100 (same formula as Custom Pair Analyzer)
   const forexIds=['EUR','GBP','JPY','CHF','CAD','AUD','NZD','MXN','USD'];
   const scoreMap={};
   forexIds.forEach(id=>{
-    if(id==='USD'){scoreMap.USD=calcUSDScore(true);}
-    else if(allData[id]) scoreMap[id]=itsScore(allData[id],false,id);
+    if(id==='USD'){scoreMap.USD=Math.round(calcUSDScore(true)/2+50);}
+    else if(allData[id]) scoreMap[id]=calcITS(allData[id],false,id);
   });
 
   const pairs=[];
@@ -1608,7 +1608,7 @@ function renderTopTrades(){
         <span class="top-trade-score-label">ITS Diff:</span>
         <span class="top-trade-score-val">${p.pairScore>0?'+':''}${p.pairScore}</span>
       </div>
-      <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:4px;">${p.base}: ${p.baseScore>0?'+':''}${p.baseScore} | ${p.quote}: ${p.quoteScore>0?'+':''}${p.quoteScore}</div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:4px;">${p.base}: ITS ${p.baseScore} | ${p.quote}: ITS ${p.quoteScore}</div>
     </div>`;
   }).join('');
 }
@@ -2258,9 +2258,9 @@ function renderStrengthPage(){
 // ─── PAIR BUILDER PAGE ────────────────────────────────────────────────────────
 function renderPairsPage(){
   if(Object.keys(allData).length===0) return;
-  const usdScore=calcUSDScore(true);
-  const scoreMap={USD:usdScore};
-  MARKETS.filter(m=>m.cat==='forex').forEach(m=>{if(allData[m.id]) scoreMap[m.id]=itsScore(allData[m.id],false,m.id);});
+  // Use raw ITS (0-100) — same formula as Custom Pair Analyzer: pairScore = Base ITS − Quote ITS
+  const scoreMap={USD:Math.round(calcUSDScore(true)/2+50)};
+  MARKETS.filter(m=>m.cat==='forex').forEach(m=>{if(allData[m.id]) scoreMap[m.id]=calcITS(allData[m.id],false,m.id);});
   const flowMap={};
   MARKETS.filter(m=>m.cat==='forex').forEach(m=>{if(allData[m.id]) flowMap[m.id]=getFlowChanges(allData[m.id]);});
   flowMap['USD']={w4:0,w8:0,w12:0};
@@ -2281,8 +2281,8 @@ function renderPairsPage(){
   if(pairs.length===0){grid.innerHTML=`<div class="empty-state"><div class="icon">📡</div>Load data first</div>`;return;}
   grid.innerHTML=pairs.map((p,i)=>{
     const abs=Math.abs(p.pairScore), isLong=p.pairScore>0;
-    const cls=abs>80?(isLong?'strong-buy':'strong-sell'):abs>40?(isLong?'weak-buy':'weak-sell'):'neutral-pair';
-    const pillLabel=abs>80?(isLong?'STRONG BUY':'STRONG SELL'):abs>40?(isLong?'BUY':'SELL'):'NEUTRAL';
+    const cls=abs>40?(isLong?'strong-buy':'strong-sell'):abs>20?(isLong?'weak-buy':'weak-sell'):'neutral-pair';
+    const pillLabel=abs>40?(isLong?'STRONG BUY':'STRONG SELL'):abs>20?(isLong?'BUY':'SELL'):'NEUTRAL';
     const barPct=Math.min(100,(abs/topAbs)*100);
     const barColor=abs>80?(isLong?'#22c55e':'#ef4444'):abs>40?(isLong?'#86efac':'#fca5a5'):'#f59e0b';
     const isTop=i<3;
@@ -2298,7 +2298,7 @@ function renderPairsPage(){
         <span class="pair-score" style="color:${barColor}">${p.pairScore>0?'+':''}${p.pairScore}</span>
         <span class="pair-signal-pill ${cls}">${pillLabel}</span>
       </div>
-      <div class="pair-breakdown">${p.base}: ${p.baseScore>0?'+':''}${p.baseScore} | ${p.quote}: ${p.quoteScore>0?'+':''}${p.quoteScore}</div>
+      <div class="pair-breakdown">${p.base}: ITS ${p.baseScore} | ${p.quote}: ITS ${p.quoteScore}</div>
       <div class="pair-bar-track"><div class="pair-bar-fill" style="width:${barPct}%;background:${barColor}"></div></div>
       <div class="pair-flow-row">
         <div class="pair-flow-cell"><div class="pair-flow-label">4W FLOW DIFF</div><div class="pair-flow-val" style="color:${flowDiff4>=0?'#22c55e':'#ef4444'}">${fmtChange(flowDiff4)}</div></div>
