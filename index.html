@@ -679,7 +679,7 @@
 
 <!-- ═══════════════ PAIR BUILDER PAGE ═══════════════ -->
 <div class="page" id="page-pairs">
-  <div class="info-box">🔀 Pair scores = Base ITS (0–100) minus Quote ITS (0–100). Max score ±100. Higher absolute score = stronger institutional flow divergence = better setup. Same formula used in Custom Pair Analyzer.</div>
+  <div class="info-box">🔀 Pair scores = Base ITS (0–100) minus Quote ITS (0–100). Now also shows the Williams Method (26-week Commercial COT Index) differential per pair, with an alignment check between the two methods. Same formulas used in Custom Pair Analyzer.</div>
 
   <!-- ═══════════ CUSTOM PAIR BUILDER ═══════════ -->
   <div class="custom-pair-box">
@@ -823,7 +823,7 @@
 </div>
 
 </main>
-<footer>COT Intelligence v7 PRO · Institutional Decision Engine · Forex Engine (Non-Comm 35% · Flow 35% · Curr Strength 20% · Comm 10%) · Metals Engine (Comm 35% · Div 25% · OI 25% · Non-Comm 15%) · NEW v7: Z-Score · Flow Persistence · Acceleration · Confidence % · Probability · Relative Flow Matrix · Data: CFTC</footer>
+<footer>COT Intelligence v7 PRO · Institutional Decision Engine · Forex Engine (Non-Comm 35% · Flow 35% · Curr Strength 20% · Comm 10%) · Metals Engine (Comm 35% · Div 25% · OI 25% · Non-Comm 15%) · NEW v7: Z-Score · Flow Persistence · Acceleration · Confidence % · Probability · Relative Flow Matrix · Williams-Enhanced Pair Builder · Data: CFTC</footer>
 
 <script>
 const MARKETS = [
@@ -992,6 +992,32 @@ function compareSignals(itsScore, williamsW){
   if(itsDir===willDir) return {agree:true,text:'✅ Aligned',cls:'w-agree'};
   if(itsDir==='neutral'||willDir==='neutral') return {agree:false,text:'⚠ One Neutral',cls:'w-diverge'};
   return {agree:false,text:'⚡ DIVERGE',cls:'w-diverge'};
+}
+
+// USD synthetic Williams score (basket average, same pattern as calcUSDScore)
+function calcUSDWilliamsScore(){
+  const ids=['EUR','GBP','AUD','NZD','CAD','MXN'], invIds=['JPY','CHF'];
+  let total=0, count=0;
+  ids.forEach(id=>{if(allData[id]){const w=calcWilliamsIndex(allData[id],26); if(w){total+=Math.round((w.index-50)*2);count++;}}});
+  invIds.forEach(id=>{if(allData[id]){const w=calcWilliamsIndex(allData[id],26); if(w){total-=Math.round((w.index-50)*2);count++;}}});
+  return count>0?Math.round(-total/count):0;
+}
+
+// Williams Index (0-100) for any currency, incl. synthetic USD
+function getCcyWilliamsIndex(id){
+  if(id==='USD'){ const s=calcUSDWilliamsScore(); return Math.max(0,Math.min(100,Math.round(s/2+50))); }
+  if(!allData[id]) return null;
+  const w=calcWilliamsIndex(allData[id],26);
+  return w?w.index:null;
+}
+
+function williamsPairAgreement(itsPairScore, willPairScore){
+  if(willPairScore===null||willPairScore===undefined) return {text:'No Williams Data',cls:'',color:var_muted};
+  const itsDir=itsPairScore>10?'bull':itsPairScore<-10?'bear':'neutral';
+  const willDir=willPairScore>10?'bull':willPairScore<-10?'bear':'neutral';
+  if(itsDir==='neutral'||willDir==='neutral') return {text:'⚠ One Neutral',cls:'',color:'#f59e0b'};
+  if(itsDir===willDir) return {text:'✅ Aligned',cls:'',color:'#22c55e'};
+  return {text:'⚡ Diverge',cls:'',color:'#c084fc'};
 }
 
 // ─── SIGNAL LOG (localStorage) ────────────────────────────────────────────────
@@ -2629,19 +2655,24 @@ function renderStrengthPage(){
 // ─── PAIR BUILDER PAGE ────────────────────────────────────────────────────────
 function renderPairsPage(){
   if(Object.keys(allData).length===0) return;
-  // Use raw ITS (0-100) — same formula as Custom Pair Analyzer: pairScore = Base ITS − Quote ITS
   const scoreMap={USD:Math.round(calcUSDScore(true)/2+50)};
-  MARKETS.filter(m=>m.cat==='forex').forEach(m=>{if(allData[m.id]) scoreMap[m.id]=calcITS(allData[m.id],false,m.id);});
+  const williamsMap={USD:getCcyWilliamsIndex('USD')};
+  MARKETS.filter(m=>m.cat==='forex').forEach(m=>{
+    if(allData[m.id]){ scoreMap[m.id]=calcITS(allData[m.id],false,m.id); williamsMap[m.id]=getCcyWilliamsIndex(m.id); }
+  });
   const flowMap={};
   MARKETS.filter(m=>m.cat==='forex').forEach(m=>{if(allData[m.id]) flowMap[m.id]=getFlowChanges(allData[m.id]);});
   flowMap['USD']={w4:0,w8:0,w12:0};
   const pairs=[];
   FOREX_PAIRS.forEach(([base,quote])=>{
     if(scoreMap[base]===undefined||scoreMap[quote]===undefined) return;
+    const bw=williamsMap[base], qw=williamsMap[quote];
     pairs.push({
       base,quote,
       baseScore:scoreMap[base],quoteScore:scoreMap[quote],
       pairScore:scoreMap[base]-scoreMap[quote],
+      baseWilliams:bw,quoteWilliams:qw,
+      williamsPairScore:(bw!=null&&qw!=null)?bw-qw:null,
       baseFlow:flowMap[base]||{w4:0,w8:0},
       quoteFlow:flowMap[quote]||{w4:0,w8:0}
     });
@@ -2657,11 +2688,17 @@ function renderPairsPage(){
     const barPct=Math.min(100,(abs/topAbs)*100);
     const barColor=abs>80?(isLong?'#22c55e':'#ef4444'):abs>40?(isLong?'#86efac':'#fca5a5'):'#f59e0b';
     const isTop=i<3;
-    // Flow momentum differential (4W base minus 4W quote)
     const baseF4=p.baseFlow.w4||0, quoteF4=p.quoteFlow.w4||0;
     const baseF8=p.baseFlow.w8||0, quoteF8=p.quoteFlow.w8||0;
     const flowDiff4=baseF4-quoteF4;
     const flowDiff8=baseF8-quoteF8;
+
+    // Williams block
+    const wAgree=williamsPairAgreement(p.pairScore,p.williamsPairScore);
+    const wBaseColor=p.baseWilliams!=null?cotIndexColor(p.baseWilliams):var_muted;
+    const wQuoteColor=p.quoteWilliams!=null?cotIndexColor(p.quoteWilliams):var_muted;
+    const wDiffColor=p.williamsPairScore==null?var_muted:(p.williamsPairScore>0?'#22c55e':p.williamsPairScore<0?'#ef4444':'#f59e0b');
+
     return `<div class="pair-card ${cls} ${isTop?'top-pick':''}">
       ${isTop?`<span class="top-pick-badge">#${i+1} PICK</span>`:''}
       <div class="pair-name">${p.base}/${p.quote}</div>
@@ -2676,6 +2713,12 @@ function renderPairsPage(){
         <div class="pair-flow-cell"><div class="pair-flow-label">8W FLOW DIFF</div><div class="pair-flow-val" style="color:${flowDiff8>=0?'#22c55e':'#ef4444'}">${fmtChange(flowDiff8)}</div></div>
         <div class="pair-flow-cell"><div class="pair-flow-label">CONVICTION</div><div class="pair-flow-val" style="color:${flowDiff4*flowDiff8>0?'#22c55e':'#f59e0b'}">${flowDiff4*flowDiff8>0?'✅ ALIGNED':'⚠ MIXED'}</div></div>
       </div>
+      <div class="pair-flow-row" style="border-top:1px solid var(--border);margin-top:6px;padding-top:6px;">
+        <div class="pair-flow-cell"><div class="pair-flow-label" style="color:#22c55e">WIL ${p.base}</div><div class="pair-flow-val" style="color:${wBaseColor}">${p.baseWilliams??'—'}</div></div>
+        <div class="pair-flow-cell"><div class="pair-flow-label" style="color:#22c55e">WIL ${p.quote}</div><div class="pair-flow-val" style="color:${wQuoteColor}">${p.quoteWilliams??'—'}</div></div>
+        <div class="pair-flow-cell"><div class="pair-flow-label" style="color:#22c55e">WIL DIFF</div><div class="pair-flow-val" style="color:${wDiffColor}">${p.williamsPairScore!=null?(p.williamsPairScore>0?'+':'')+p.williamsPairScore:'—'}</div></div>
+      </div>
+      <div style="text-align:center;margin-top:4px;font-family:var(--mono);font-size:9px;color:${wAgree.color}">ITS vs Williams: ${wAgree.text}</div>
     </div>`;
   }).join('');
 }
@@ -2720,6 +2763,7 @@ function getCcyConfidence(id){
   if(id==='USD'||!allData[id]||allData[id].length<10) return null;
   return calcConfidence(allData[id],false,id);
 }
+function getCcyWilliams(id){ return getCcyWilliamsIndex(id); }
 
 async function analyzeCustomPair(){
   const input=document.getElementById('custom-pair-input');
@@ -2759,6 +2803,23 @@ async function analyzeCustomPair(){
   }
 }
 
+function legCard(id,its,lbl,flow,persist,z,crowd,conf,williamsIdx){
+  const persistLbl=persist?persistenceLabel(persist):null;
+  const wColor=williamsIdx!=null?cotIndexColor(williamsIdx):var_muted;
+  return `<div class="cpr-leg">
+    <div class="cpr-leg-name">${id} <span style="font-size:10px;color:var(--muted);font-weight:400">${CCY_NAMES[id]||''}</span></div>
+    <div class="cpr-leg-label" style="background:rgba(255,255,255,.06);color:${lbl.color}">${lbl.text}</div>
+    <div class="cpr-leg-its" style="color:${lbl.color}">${its}</div>
+    <div class="cpr-leg-stat-row"><span>4W Flow</span><span class="cpr-leg-stat-val" style="color:${(flow.w4||0)>=0?'#22c55e':'#ef4444'}">${fmtChange(flow.w4||0)}</span></div>
+    <div class="cpr-leg-stat-row"><span>8W Flow</span><span class="cpr-leg-stat-val" style="color:${(flow.w8||0)>=0?'#22c55e':'#ef4444'}">${fmtChange(flow.w8||0)}</span></div>
+    ${persist?`<div class="cpr-leg-stat-row"><span>Streak</span><span class="cpr-leg-stat-val" style="color:${persistLbl.color}">${persist.dir==='none'?'—':persist.streak+'wk '+(persist.dir==='bull'?'▲':'▼')}</span></div>`:''}
+    ${z?`<div class="cpr-leg-stat-row"><span>Z-Score</span><span class="cpr-leg-stat-val" style="color:${Math.abs(z.z)>=2?'#ef4444':Math.abs(z.z)>=1.5?'#f59e0b':'#86efac'}">${z.z}σ</span></div>`:''}
+    ${crowd?`<div class="cpr-leg-stat-row"><span>Net/OI</span><span class="cpr-leg-stat-val">${crowd.ratio}%</span></div>`:''}
+    <div class="cpr-leg-stat-row"><span>Williams (26W)</span><span class="cpr-leg-stat-val" style="color:${wColor}">${williamsIdx??'—'}</span></div>
+    ${conf?`<div class="cpr-leg-stat-row"><span>Confidence</span><span class="cpr-leg-stat-val" style="color:${conf.confidence>=70?'#22c55e':conf.confidence>=50?'#f59e0b':'#ef4444'}">${conf.confidence}%</span></div>`:''}
+  </div>`;
+}
+
 function renderCustomPairReport(base,quote){
   const resultEl=document.getElementById('custom-pair-result');
   const baseITS=getCcyITS(base), quoteITS=getCcyITS(quote);
@@ -2788,6 +2849,9 @@ function renderCustomPairReport(base,quote){
   const quoteZ=quote==='USD'?null:calcZScore(allData[quote]);
   const baseCrowd=base==='USD'?null:calcCrowdingRatio(allData[base]);
   const quoteCrowd=quote==='USD'?null:calcCrowdingRatio(allData[quote]);
+  const baseWilliams=getCcyWilliams(base), quoteWilliams=getCcyWilliams(quote);
+  const williamsPairScore=(baseWilliams!=null&&quoteWilliams!=null)?baseWilliams-quoteWilliams:null;
+  const wAgree=williamsPairAgreement(pairScore,williamsPairScore);
 
   const baseLbl=itsLabel(baseITS), quoteLbl=itsLabel(quoteITS);
 
@@ -2801,6 +2865,7 @@ function renderCustomPairReport(base,quote){
     {label:`${quote} Not Overcrowded`, pass: !quoteCrowd || Math.abs(quoteCrowd.ratio)<35},
     {label:`${base} Z-Score Sane`, pass: !baseZ || Math.abs(baseZ.z)<2.5},
     {label:`${quote} Z-Score Sane`, pass: !quoteZ || Math.abs(quoteZ.z)<2.5},
+    {label:'Williams Confirms', pass: wAgree.text==='✅ Aligned'},
   ];
   const passCount=checks.filter(c=>c.pass).length;
   const confPct=Math.round((passCount/checks.length)*100);
@@ -2823,20 +2888,8 @@ function renderCustomPairReport(base,quote){
   if(quotePersist&&quotePersist.streak>=5) verdict+=`${quote} has a ${quotePersist.streak}-week ${quotePersist.dir==='bull'?'buying':'selling'} streak. `;
   if(baseCrowd&&Math.abs(baseCrowd.ratio)>=30) verdict+=`⚠ ${base} positioning is crowded (${baseCrowd.ratio}% of OI) — reversal risk on that leg. `;
   if(quoteCrowd&&Math.abs(quoteCrowd.ratio)>=30) verdict+=`⚠ ${quote} positioning is crowded (${quoteCrowd.ratio}% of OI) — reversal risk on that leg. `;
-
-  function legCard(id,its,lbl,flow,persist,z,crowd,conf){
-    const persistLbl=persist?persistenceLabel(persist):null;
-    return `<div class="cpr-leg">
-      <div class="cpr-leg-name">${id} <span style="font-size:10px;color:var(--muted);font-weight:400">${CCY_NAMES[id]||''}</span></div>
-      <div class="cpr-leg-label" style="background:rgba(255,255,255,.06);color:${lbl.color}">${lbl.text}</div>
-      <div class="cpr-leg-its" style="color:${lbl.color}">${its}</div>
-      <div class="cpr-leg-stat-row"><span>4W Flow</span><span class="cpr-leg-stat-val" style="color:${(flow.w4||0)>=0?'#22c55e':'#ef4444'}">${fmtChange(flow.w4||0)}</span></div>
-      <div class="cpr-leg-stat-row"><span>8W Flow</span><span class="cpr-leg-stat-val" style="color:${(flow.w8||0)>=0?'#22c55e':'#ef4444'}">${fmtChange(flow.w8||0)}</span></div>
-      ${persist?`<div class="cpr-leg-stat-row"><span>Streak</span><span class="cpr-leg-stat-val" style="color:${persistLbl.color}">${persist.dir==='none'?'—':persist.streak+'wk '+(persist.dir==='bull'?'▲':'▼')}</span></div>`:''}
-      ${z?`<div class="cpr-leg-stat-row"><span>Z-Score</span><span class="cpr-leg-stat-val" style="color:${Math.abs(z.z)>=2?'#ef4444':Math.abs(z.z)>=1.5?'#f59e0b':'#86efac'}">${z.z}σ</span></div>`:''}
-      ${crowd?`<div class="cpr-leg-stat-row"><span>Net/OI</span><span class="cpr-leg-stat-val">${crowd.ratio}%</span></div>`:''}
-      ${conf?`<div class="cpr-leg-stat-row"><span>Confidence</span><span class="cpr-leg-stat-val" style="color:${conf.confidence>=70?'#22c55e':conf.confidence>=50?'#f59e0b':'#ef4444'}">${conf.confidence}%</span></div>`:''}
-    </div>`;
+  if(williamsPairScore!=null){
+    verdict+=`Williams Method (26-week Commercial COT) shows a differential of ${williamsPairScore>0?'+':''}${williamsPairScore} pts between the legs — this ${wAgree.text==='✅ Aligned'?'confirms':wAgree.text==='⚡ Diverge'?'conflicts with':'is inconclusive versus'} the ITS-based call. `;
   }
 
   resultEl.innerHTML=`
@@ -2850,9 +2903,9 @@ function renderCustomPairReport(base,quote){
         <div class="cpr-score-sub">Pair Score (${base} ITS − ${quote} ITS)<br>Checklist Confidence: <span style="color:${confPct>=70?'#22c55e':confPct>=50?'#f59e0b':'#ef4444'}">${confPct}%</span> (${passCount}/${checks.length})</div>
       </div>
       <div class="cpr-vs-row">
-        ${legCard(base,baseITS,baseLbl,baseFlow,basePersist,baseZ,baseCrowd,baseConf)}
+        ${legCard(base,baseITS,baseLbl,baseFlow,basePersist,baseZ,baseCrowd,baseConf,baseWilliams)}
         <div class="cpr-vs-divider">VS</div>
-        ${legCard(quote,quoteITS,quoteLbl,quoteFlow,quotePersist,quoteZ,quoteCrowd,quoteConf)}
+        ${legCard(quote,quoteITS,quoteLbl,quoteFlow,quotePersist,quoteZ,quoteCrowd,quoteConf,quoteWilliams)}
       </div>
       <div class="cpr-section">
         <div class="cpr-section-title">📊 Relative Flow Differential</div>
@@ -2861,6 +2914,15 @@ function renderCustomPairReport(base,quote){
           <div class="cpr-flow-cell"><div class="cpr-flow-cell-label">8W Diff</div><div class="cpr-flow-cell-val" style="color:${flowDiff8>=0?'#22c55e':'#ef4444'}">${fmtChange(flowDiff8)}</div></div>
           <div class="cpr-flow-cell"><div class="cpr-flow-cell-label">12W Diff</div><div class="cpr-flow-cell-val" style="color:${flowDiff12>=0?'#22c55e':'#ef4444'}">${fmtChange(flowDiff12)}</div></div>
         </div>
+      </div>
+      <div class="cpr-section">
+        <div class="cpr-section-title">📊 Williams Method (26-Week Commercial COT)</div>
+        <div class="cpr-flow-grid">
+          <div class="cpr-flow-cell"><div class="cpr-flow-cell-label">${base} Williams</div><div class="cpr-flow-cell-val" style="color:${baseWilliams!=null?cotIndexColor(baseWilliams):var_muted}">${baseWilliams??'—'}</div></div>
+          <div class="cpr-flow-cell"><div class="cpr-flow-cell-label">${quote} Williams</div><div class="cpr-flow-cell-val" style="color:${quoteWilliams!=null?cotIndexColor(quoteWilliams):var_muted}">${quoteWilliams??'—'}</div></div>
+          <div class="cpr-flow-cell"><div class="cpr-flow-cell-label">Diff</div><div class="cpr-flow-cell-val" style="color:${wAgree.color}">${williamsPairScore!=null?(williamsPairScore>0?'+':'')+williamsPairScore:'—'}</div></div>
+        </div>
+        <div style="margin-top:8px;font-family:var(--mono);font-size:10px;color:${wAgree.color}">ITS vs Williams signal: ${wAgree.text}</div>
       </div>
       <div class="cpr-section">
         <div class="cpr-section-title">✅ Setup Checklist</div>
