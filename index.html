@@ -507,6 +507,7 @@
   <button class="nav-tab" onclick="switchPage('extremes',this)">🚨 Extreme Scanner</button>
   <button class="nav-tab" onclick="switchPage('divergence',this)">🔍 Divergence</button>
   <button class="nav-tab" onclick="switchPage('williams',this)">📊 Williams vs ITS</button>
+  <button class="nav-tab" onclick="switchPage('williamsMetals',this)">🥇 Williams Metals</button>
 </nav>
 
 <div id="quote-banner" style="text-align:center;padding:10px 20px;font-family:var(--mono);font-size:13px;font-weight:600;color:var(--muted);background:var(--surface);border-bottom:1px solid var(--border);transition:opacity .4s ease;">
@@ -745,7 +746,7 @@
 
 <!-- ═══════════════ WILLIAMS vs ITS PAGE ═══════════════ -->
 <div class="page" id="page-williams">
-  <div class="info-box">📊 <strong>Williams Method</strong> uses the <strong>Commercial COT Index (26-week lookback)</strong> as the primary signal. Extremes ≥90 = Bullish, ≤10 = Bearish. Compare against your ITS score to see which method gives better signals for each market. The <strong>Metals COT Analysis</strong> column reads the Commercial Divergence (spec vs. commercial gap) for Gold/Silver/Copper/Platinum/Palladium — the highest-conviction metals setup — and notes when Williams' 26-week extreme lines up with it. Log your trades below to track which method outperforms over time.</div>
+  <div class="info-box">📊 <strong>Williams Method</strong> uses the <strong>Commercial COT Index (26-week lookback)</strong> as the primary signal. Extremes ≥90 = Bullish, ≤10 = Bearish. Compare against your ITS score to see which method gives better signals for each market. Log your trades below to track which method outperforms over time.</div>
 
   <!-- COMPARISON TABLE -->
   <div class="section-title">Method Comparison — All Markets</div>
@@ -758,13 +759,12 @@
           <th>ITS Signal</th>
           <th>Williams<br><span style="font-weight:600;color:var(--muted);font-size:11px;">Comm COT 26W</span></th>
           <th>Williams Signal</th>
-          <th>Metals COT Analysis<br><span style="font-weight:600;color:var(--muted);font-size:11px;">Comm Divergence read</span></th>
           <th>Agreement</th>
           <th>Log</th>
         </tr>
       </thead>
       <tbody id="williams-compare-body">
-        <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px;font-family:var(--mono);font-size:12px;">Fetch COT data first</td></tr>
+        <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px;font-family:var(--mono);font-size:12px;">Fetch COT data first</td></tr>
       </tbody>
     </table>
   </div>
@@ -798,6 +798,16 @@
         </tbody>
       </table>
     </div>
+  </div>
+</div>
+
+<!-- ═══════════════ WILLIAMS METALS ANALYSIS PAGE ═══════════════ -->
+<div class="page" id="page-williamsMetals">
+  <div class="info-box">🥇 <strong>Williams Method — Metals Focus.</strong> Larry Williams' approach uses the <strong>Commercial (hedger) COT Index over a strict 26-week lookback</strong> as the primary signal, applied here to Gold, Silver, Copper, Platinum, and Palladium. Commercials in metals are producers/refiners hedging supply — when their net position sits near the top of its 26-week range (index ≥90), it means they're covering shorts and expect prices to rise; near the bottom (≤10) means heavy fresh hedging and a bearish read. Between 10 and 90, Williams has no signal — stand aside.</div>
+
+  <div class="section-title">Metals — Williams Method (26-Week Commercial COT Index)</div>
+  <div id="williams-metals-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;">
+    <div class="empty-state" style="grid-column:1/-1"><div class="icon">🥇</div>Fetch COT data to see Williams Method metals analysis</div>
   </div>
 </div>
 
@@ -1203,30 +1213,12 @@ function renderSignalLog(){
   }).join('');
 }
 
-// ─── METALS COT ANALYSIS (Commercial Divergence read, Williams-informed) ─────
-// For metals, the Williams Method's Commercial COT Index doubles as the core
-// input to the Commercial Divergence signal (rising Comm Index = shorts
-// covering = bullish). This gives a plain-language read specific to metals,
-// separate from the general ITS/Williams columns.
-function metalsCotAnalysisLabel(rows,w){
-  if(!rows||rows.length<5) return {text:'N/A',color:var_muted,pill:''};
-  const metalsResult=calcMetalsITS(rows);
-  const div=metalsResult.divergenceVal;
-  if(div===undefined||div===null) return {text:'N/A',color:var_muted,pill:''};
-  const wExtreme=w&&(w.signal==='bull'||w.signal==='bear');
-  if(div>=30) return {text:'🔥 Premium Bull Setup',color:'#6f9e5c',pill:`Div +${div.toFixed(0)}${wExtreme?' · Williams confirms':''}`};
-  if(div>=15) return {text:'📈 Bullish Divergence',color:'#a8cf9e',pill:`Div +${div.toFixed(0)}`};
-  if(div<=-30) return {text:'🚨 Bearish Divergence',color:'#c0674a',pill:`Div ${div.toFixed(0)}${wExtreme?' · Williams confirms':''}`};
-  if(div<=-15) return {text:'📉 Bearish Bias',color:'#d19a82',pill:`Div ${div.toFixed(0)}`};
-  return {text:'⚖️ Aligned / No Edge',color:'#c9a35f',pill:`Div ${div>=0?'+':''}${div.toFixed(0)}`};
-}
-
 // ─── WILLIAMS vs ITS COMPARISON PAGE ─────────────────────────────────────────
 function renderWilliamsPage(){
   const body=document.getElementById('williams-compare-body');
   if(!body) return;
   if(Object.keys(allData).length===0){
-    body.innerHTML=`<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px;font-family:var(--mono);font-size:12px;">Fetch COT data first</td></tr>`;
+    body.innerHTML=`<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px;font-family:var(--mono);font-size:12px;">Fetch COT data first</td></tr>`;
     renderSignalLog();
     return;
   }
@@ -1238,24 +1230,19 @@ function renderWilliamsPage(){
     const w=calcWilliamsIndex(rows,26);
     const wLbl=williamsLabel(w);
     const compare=compareSignals(its,w);
-    const metalsLbl=isMetals?metalsCotAnalysisLabel(rows,w):null;
-    return {m,its,itsLbl,w,wLbl,compare,isMetals,metalsLbl};
+    return {m,its,itsLbl,w,wLbl,compare};
   });
 
-  body.innerHTML=rows.map(({m,its,itsLbl,w,wLbl,compare,isMetals,metalsLbl})=>{
+  body.innerHTML=rows.map(({m,its,itsLbl,w,wLbl,compare})=>{
     const wColor=w?cotIndexColor(w.index):var_muted;
     const itsVal=allData[m.id]?calcITS(allData[m.id],m.cat==='metals',m.id):0;
     const wVal=w?w.index:0;
-    const metalsCell=isMetals&&metalsLbl
-      ?`<span style="color:${metalsLbl.color};font-weight:700;">${metalsLbl.text}</span>${metalsLbl.pill?`<br><span style="font-family:var(--mono);font-size:10px;font-weight:600;color:var(--muted);">${metalsLbl.pill}</span>`:''}`
-      :`<span style="color:var(--muted);font-size:12px;font-weight:600;">— forex, n/a —</span>`;
     return `<tr>
       <td style="font-weight:700">${m.name}</td>
       <td style="font-family:var(--mono);color:${itsLbl.color};font-weight:700">${its}</td>
       <td><span class="w-signal-pill" style="background:${its>=60?'rgba(111,158,92,.15)':its<=40?'rgba(192,103,74,.15)':'rgba(201,163,95,.15)'};color:${itsLbl.color}">${itsLbl.text}</span></td>
       <td style="font-family:var(--mono);color:${wColor};font-weight:700">${w?w.index:'-'}<span style="color:var(--muted);font-size:9px;margin-left:4px;">/100</span></td>
       <td><span class="w-signal-pill" style="background:${w&&w.signal==='bull'?'rgba(111,158,92,.15)':w&&w.signal==='bear'?'rgba(192,103,74,.15)':'rgba(201,163,95,.15)'};color:${wLbl.color}">${wLbl.text}</span></td>
-      <td style="text-align:left;">${metalsCell}</td>
       <td><span class="${compare.cls}">${compare.text}</span></td>
       <td><button class="w-log-btn" onclick="showLogModal('${m.id}',${itsVal},${wVal})">+ Log</button></td>
     </tr>`;
@@ -1264,8 +1251,57 @@ function renderWilliamsPage(){
   renderSignalLog();
 }
 
+// ─── WILLIAMS METALS ANALYSIS PAGE ────────────────────────────────────────────
+// Pure Williams Method (26-week Commercial COT Index) applied only to metals.
+function renderWilliamsMetalsPage(){
+  const grid=document.getElementById('williams-metals-grid');
+  if(!grid) return;
+  const metals=MARKETS.filter(m=>m.cat==='metals'&&allData[m.id]);
+  if(metals.length===0){
+    grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="icon">🥇</div>Fetch COT data to see Williams Method metals analysis</div>`;
+    return;
+  }
+  grid.innerHTML=metals.map(m=>{
+    const rows=allData[m.id];
+    const w=calcWilliamsIndex(rows,26);
+    const wLbl=williamsLabel(w);
+    const wColor=w?cotIndexColor(w.index):var_muted;
+    const borderColor=w&&w.signal==='bull'?'rgba(111,158,92,.4)':w&&w.signal==='bear'?'rgba(192,103,74,.4)':'var(--border)';
+    const pillCls=w&&w.signal==='bull'?'opportunity':w&&w.signal==='bear'?'danger':w&&(w.signal==='lean-bull'||w.signal==='lean-bear')?'caution':'normal';
+    let desc;
+    if(!w){
+      desc='Not enough report history to calculate the Williams Index for this market.';
+    } else if(w.signal==='bull'){
+      desc=`🟢 EXTREME BULL — Commercials are near their most long position in the past 26 weeks (index ${w.index}). Larry Williams would treat this as a BUY signal.`;
+    } else if(w.signal==='bear'){
+      desc=`🔴 EXTREME BEAR — Commercials are near their most short position in the past 26 weeks (index ${w.index}). Larry Williams would treat this as a SELL signal.`;
+    } else if(w.index>=70){
+      desc=`Commercials are leaning bullish (${w.index}/100) but haven't reached the ≥90 extreme threshold. Williams would wait for ≥90 before acting.`;
+    } else if(w.index<=30){
+      desc=`Commercials are leaning bearish (${w.index}/100) but haven't reached the ≤10 extreme threshold. Williams would wait for ≤10 before acting.`;
+    } else {
+      desc=`Commercials are in the neutral zone (${w.index}/100). Williams Method has no signal here — stand aside until it reaches an extreme (≤10 or ≥90).`;
+    }
+    return `<div class="extreme-card" style="border-color:${borderColor}">
+      <div class="extreme-header">
+        <span class="extreme-name">${m.name}</span>
+        <span class="extreme-pct-pill ${pillCls}">${w?w.index+'/100':'—'}</span>
+      </div>
+      <div class="percentile-bar"><div class="percentile-fill" style="width:${w?w.index:50}%;background:${wColor}"></div></div>
+      <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--muted);margin-bottom:8px;">
+        <span>0 Extreme Bear</span><span>50 Neutral</span><span>Extreme Bull 100</span>
+      </div>
+      <div style="font-family:var(--mono);font-size:14px;font-weight:700;color:${wLbl.color};margin-bottom:6px;">${wLbl.text}</div>
+      <div class="extreme-note">${desc}</div>
+      <div style="margin-top:10px;text-align:right;">
+        <button onclick="showLogModal('${m.id}',0,${w?w.index:''})" class="w-log-btn">+ Log This Signal</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
 function renderAll(){
-  renderCards(); renderStrengthPage(); renderPairsPage(); renderExtremesPage(); renderDivergencePage(); renderDashboard(); renderDisaggPage(); renderMatrixPage(); renderWilliamsPage();
+  renderCards(); renderStrengthPage(); renderPairsPage(); renderExtremesPage(); renderDivergencePage(); renderDashboard(); renderDisaggPage(); renderMatrixPage(); renderWilliamsPage(); renderWilliamsMetalsPage();
 }
 
 function switchPage(page,btn){
