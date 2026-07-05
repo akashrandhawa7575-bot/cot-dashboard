@@ -452,14 +452,14 @@
   .csc-stat-label{font-family:var(--mono);font-size:7px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
   .csc-stat-val{font-family:var(--mono);font-size:12px;font-weight:700;margin-top:1px;}
   /* WILLIAMS TABLE */
-  .williams-table{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:12px;}
-  .williams-table th{background:var(--panel);color:var(--muted);font-size:10px;font-weight:700;letter-spacing:.05em;padding:9px 12px;border:1px solid var(--border);text-align:left;}
-  .williams-table td{padding:9px 12px;border:1px solid var(--border);vertical-align:middle;}
+  .williams-table{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:14px;}
+  .williams-table th{background:var(--panel);color:var(--muted);font-size:12px;font-weight:700;letter-spacing:.05em;padding:11px 14px;border:1px solid var(--border);text-align:left;}
+  .williams-table td{padding:11px 14px;border:1px solid var(--border);vertical-align:middle;font-size:14px;}
   .williams-table tbody tr:hover{background:rgba(255,255,255,.02);}
-  .w-signal-pill{font-family:var(--mono);font-size:9px;font-weight:700;padding:3px 8px;border-radius:20px;display:inline-block;text-transform:uppercase;}
-  .w-agree{background:rgba(111,158,92,.15);color:#6f9e5c;font-family:var(--mono);font-size:9px;font-weight:700;padding:3px 8px;border-radius:4px;}
-  .w-diverge{background:rgba(154,143,174,.15);color:#9a8fae;font-family:var(--mono);font-size:9px;font-weight:700;padding:3px 8px;border-radius:4px;}
-  .w-log-btn{background:var(--subtle);color:var(--accent);border:1px solid var(--border);padding:3px 10px;border-radius:6px;font-family:var(--mono);font-size:9px;cursor:pointer;transition:all .15s;}
+  .w-signal-pill{font-family:var(--mono);font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;display:inline-block;text-transform:uppercase;}
+  .w-agree{background:rgba(111,158,92,.15);color:#6f9e5c;font-family:var(--mono);font-size:11px;font-weight:700;padding:4px 10px;border-radius:4px;}
+  .w-diverge{background:rgba(154,143,174,.15);color:#9a8fae;font-family:var(--mono);font-size:11px;font-weight:700;padding:4px 10px;border-radius:4px;}
+  .w-log-btn{background:var(--subtle);color:var(--accent);border:1px solid var(--border);padding:5px 12px;border-radius:6px;font-family:var(--mono);font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;}
   .w-log-btn:hover{background:var(--accent);color:#fff;}
   /* SCORE CARDS */
   .wl-scorecard{background:var(--subtle);border-radius:10px;padding:14px;text-align:center;}
@@ -509,8 +509,8 @@
   <button class="nav-tab" onclick="switchPage('williams',this)">📊 Williams vs ITS</button>
 </nav>
 
-<div style="text-align:center;padding:10px 20px;font-family:var(--mono);font-size:12px;color:var(--muted);background:var(--surface);border-bottom:1px solid var(--border);">
-  🌿 <em>"The trend is your friend until the end when it bends."</em> — Ed Seykota
+<div id="quote-banner" style="text-align:center;padding:10px 20px;font-family:var(--mono);font-size:13px;font-weight:600;color:var(--muted);background:var(--surface);border-bottom:1px solid var(--border);transition:opacity .4s ease;">
+  🌿 <span id="quote-text"><em>"The trend is your friend until the end when it bends."</em> — Ed Seykota</span>
 </div>
 
 <main>
@@ -756,9 +756,9 @@
           <th>Market</th>
           <th>ITS Score</th>
           <th>ITS Signal</th>
-          <th>Williams<br><span style="font-weight:400;color:var(--muted);font-size:9px;">Comm COT 26W</span></th>
+          <th>Williams<br><span style="font-weight:600;color:var(--muted);font-size:11px;">Comm COT 26W</span></th>
           <th>Williams Signal</th>
-          <th>Metals COT Analysis<br><span style="font-weight:400;color:var(--muted);font-size:9px;">Comm Divergence read</span></th>
+          <th>Metals COT Analysis<br><span style="font-weight:600;color:var(--muted);font-size:11px;">Comm Divergence read</span></th>
           <th>Agreement</th>
           <th>Log</th>
         </tr>
@@ -892,6 +892,32 @@ function initTheme(){
   let saved='dark';
   try{ saved=localStorage.getItem(THEME_KEY)||'dark'; }catch(e){}
   applyTheme(saved);
+}
+
+// ─── ROTATING TRADING QUOTES (changes every 20s) ──────────────────────────────
+const TRADING_QUOTES=[
+  {text:'"The trend is your friend until the end when it bends."',author:'Ed Seykota'},
+  {text:'"Losers average losers."',author:'Paul Tudor Jones'},
+  {text:'"Be fearful when others are greedy, and greedy when others are fearful."',author:'Warren Buffett'},
+  {text:'"The market can stay irrational longer than you can stay solvent."',author:'John Maynard Keynes'},
+  {text:'"Markets are never wrong, opinions often are."',author:'Jesse Livermore'},
+  {text:'"Cut your losses short and let your profits run."',author:'Trading proverb'},
+];
+let quoteIdx=0;
+function rotateQuote(){
+  const banner=document.getElementById('quote-banner');
+  const textEl=document.getElementById('quote-text');
+  if(!banner||!textEl) return;
+  banner.style.opacity='0';
+  setTimeout(()=>{
+    quoteIdx=(quoteIdx+1)%TRADING_QUOTES.length;
+    const q=TRADING_QUOTES[quoteIdx];
+    textEl.innerHTML=`<em>${q.text}</em> — ${q.author}`;
+    banner.style.opacity='1';
+  },400);
+}
+function initQuoteRotation(){
+  setInterval(rotateQuote,20000);
 }
 
 const API_BASE='https://publicreporting.cftc.gov/resource/6dca-aqww.json';
@@ -1161,17 +1187,17 @@ function renderSignalLog(){
       <td style="color:var(--muted)">${e.date}</td>
       <td style="font-weight:700">${e.market}</td>
       <td style="color:${dirColor};font-weight:700">${e.direction}</td>
-      <td><span style="font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;background:${e.method==='ITS'?'rgba(127,174,130,.15)':e.method==='WILLIAMS'?'rgba(111,158,92,.15)':'rgba(154,143,174,.15)'};color:${e.method==='ITS'?'#7fae82':e.method==='WILLIAMS'?'#6f9e5c':'#9a8fae'}">${e.method}</span></td>
+      <td><span style="font-family:var(--mono);font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;background:${e.method==='ITS'?'rgba(127,174,130,.15)':e.method==='WILLIAMS'?'rgba(111,158,92,.15)':'rgba(154,143,174,.15)'};color:${e.method==='ITS'?'#7fae82':e.method==='WILLIAMS'?'#6f9e5c':'#9a8fae'}">${e.method}</span></td>
       <td style="color:#7fae82">${e.itsScore}</td>
       <td style="color:#6f9e5c">${e.willScore}</td>
       <td>
-        <select onchange="updateOutcome(${e.id},this.value)" style="background:var(--panel);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:9px;padding:2px 6px;">
+        <select onchange="updateOutcome(${e.id},this.value)" style="background:var(--panel);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:11px;padding:3px 8px;">
           <option ${e.outcome==='PENDING'?'selected':''}>PENDING</option>
           <option ${e.outcome==='WIN'?'selected':''}>WIN</option>
           <option ${e.outcome==='LOSS'?'selected':''}>LOSS</option>
         </select>
       </td>
-      <td style="color:var(--muted);font-size:10px;">${e.notes||'—'}</td>
+      <td style="color:var(--muted);font-size:12px;">${e.notes||'—'}</td>
       <td><button onclick="deleteLogEntry(${e.id})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;" title="Delete">✕</button></td>
     </tr>`;
   }).join('');
@@ -1221,8 +1247,8 @@ function renderWilliamsPage(){
     const itsVal=allData[m.id]?calcITS(allData[m.id],m.cat==='metals',m.id):0;
     const wVal=w?w.index:0;
     const metalsCell=isMetals&&metalsLbl
-      ?`<span style="color:${metalsLbl.color};font-weight:700;">${metalsLbl.text}</span>${metalsLbl.pill?`<br><span style="font-family:var(--mono);font-size:8px;color:var(--muted);">${metalsLbl.pill}</span>`:''}`
-      :`<span style="color:var(--muted);font-size:10px;">— forex, n/a —</span>`;
+      ?`<span style="color:${metalsLbl.color};font-weight:700;">${metalsLbl.text}</span>${metalsLbl.pill?`<br><span style="font-family:var(--mono);font-size:10px;font-weight:600;color:var(--muted);">${metalsLbl.pill}</span>`:''}`
+      :`<span style="color:var(--muted);font-size:12px;font-weight:600;">— forex, n/a —</span>`;
     return `<tr>
       <td style="font-weight:700">${m.name}</td>
       <td style="font-family:var(--mono);color:${itsLbl.color};font-weight:700">${its}</td>
@@ -3104,7 +3130,7 @@ function renderDivergencePage(){
   }).join('');
 }
 
-window.addEventListener('load',()=>{initTheme();renderCustomPairChips();renderSignalLog();});
+window.addEventListener('load',()=>{initTheme();initQuoteRotation();renderCustomPairChips();renderSignalLog();});
 window.addEventListener('resize',()=>{if(selectedId&&allData[selectedId]) drawChart(allData[selectedId]);});
 </script>
 </body>
