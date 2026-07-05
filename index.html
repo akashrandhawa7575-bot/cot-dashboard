@@ -499,6 +499,7 @@
 
 <nav class="nav-tabs">
   <button class="nav-tab active" onclick="switchPage('dashboard',this)">🚀 Dashboard</button>
+  <button class="nav-tab" onclick="switchPage('tradefilter',this)">🎯 Trade Filter</button>
   <button class="nav-tab" onclick="switchPage('markets',this)">📊 Markets</button>
   <button class="nav-tab" onclick="switchPage('disagg',this)">🔬 Disaggregated</button>
   <button class="nav-tab" onclick="switchPage('strength',this)">💪 Currency Strength</button>
@@ -549,6 +550,41 @@
     </div>
   </div>
 
+</div>
+
+<!-- ═══════════════ TRADE FILTER PAGE ═══════════════ -->
+<div class="page" id="page-tradefilter">
+  <div class="info-box">🎯 <strong>Trade Filter</strong> — Pick what you're about to trade and the direction you're leaning. This pulls <em>only</em> the correct method for that market — <strong>ITS differential</strong> for forex pairs, <strong>Williams Method (26-week Commercial COT Index)</strong> for metals — and gives one clean verdict. No cross-referencing pages before an entry.</div>
+
+  <div class="custom-pair-box">
+    <div class="custom-pair-title">🎯 Go / No-Go Check<span class="custom-pair-badge">ITS for forex · Williams for metals</span></div>
+    <div class="custom-pair-sub">Select the instrument you're about to trade and the direction you're considering, then check it.</div>
+
+    <div class="custom-pair-input-row" style="align-items:flex-end;">
+      <div style="flex:1;min-width:150px;">
+        <label class="modal-label">Instrument Type</label>
+        <select id="tf-type" class="modal-input" onchange="tfUpdateInstrumentOptions()">
+          <option value="forex">Forex Pair (ITS)</option>
+          <option value="metal">Metal (Williams)</option>
+        </select>
+      </div>
+      <div style="flex:1;min-width:160px;" id="tf-instrument-wrap">
+        <label class="modal-label" id="tf-instrument-label">Pair</label>
+        <select id="tf-instrument" class="modal-input"></select>
+      </div>
+      <div style="flex:1;min-width:150px;">
+        <label class="modal-label">Your Direction</label>
+        <select id="tf-direction" class="modal-input">
+          <option value="LONG">LONG (Buy)</option>
+          <option value="SHORT">SHORT (Sell)</option>
+        </select>
+      </div>
+      <div style="flex:0 0 auto;">
+        <button class="custom-pair-btn" onclick="runTradeFilter()">Check Trade</button>
+      </div>
+    </div>
+    <div id="tf-result"></div>
+  </div>
 </div>
 
 <!-- ═══════════════ MARKETS PAGE ═══════════════ -->
@@ -2862,6 +2898,96 @@ function renderPairsPage(){
 const ALL_CCY_IDS=['EUR','GBP','JPY','CHF','CAD','AUD','NZD','MXN','USD'];
 const CCY_NAMES={EUR:'Euro',GBP:'British Pound',JPY:'Japanese Yen',CHF:'Swiss Franc',CAD:'Canadian Dollar',AUD:'Australian Dollar',NZD:'New Zealand Dollar',MXN:'Mexican Peso',USD:'US Dollar'};
 
+// ─── TRADE FILTER (Go / No-Go) ─────────────────────────────────────────────────
+// Single-purpose pre-trade check: pulls ONLY the relevant method for the chosen
+// instrument (ITS differential for forex pairs, Williams 26W Commercial COT
+// Index for metals) and compares it against the user's intended direction.
+
+function tfUpdateInstrumentOptions(){
+  const type=document.getElementById('tf-type').value;
+  const sel=document.getElementById('tf-instrument');
+  const label=document.getElementById('tf-instrument-label');
+  if(!sel) return;
+  if(type==='forex'){
+    label.textContent='Pair';
+    sel.innerHTML=FOREX_PAIRS.map(([b,q])=>`<option value="${b}_${q}">${b}/${q}</option>`).join('');
+  } else {
+    label.textContent='Metal';
+    sel.innerHTML=MARKETS.filter(m=>m.cat==='metals').map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
+  }
+  const resEl=document.getElementById('tf-result');
+  if(resEl) resEl.innerHTML='';
+}
+
+function tfBigResult(title,color,lines){
+  return `<div style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px;">
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+      <div style="font-family:var(--mono);font-size:26px;font-weight:700;padding:12px 26px;border-radius:12px;background:${color}22;color:${color};border:2px solid ${color};white-space:nowrap;">${title}</div>
+      <div style="flex:1;min-width:220px;font-size:13px;line-height:1.7;color:var(--text);">${lines}</div>
+    </div>
+  </div>`;
+}
+
+function runTradeFilter(){
+  const type=document.getElementById('tf-type').value;
+  const direction=document.getElementById('tf-direction').value;
+  const wantLong=direction==='LONG';
+  const resultEl=document.getElementById('tf-result');
+
+  if(Object.keys(allData).length===0){
+    resultEl.innerHTML=`<div class="custom-pair-error">⚠ No COT data loaded yet. Click "Fetch COT Data" at the top first.</div>`;
+    return;
+  }
+
+  if(type==='forex'){
+    const val=document.getElementById('tf-instrument').value;
+    if(!val){resultEl.innerHTML=`<div class="custom-pair-error">⚠ Select a pair first.</div>`;return;}
+    const [base,quote]=val.split('_');
+    const missing=[base,quote].filter(id=>id!=='USD'&&!allData[id]);
+    if(missing.length){resultEl.innerHTML=`<div class="custom-pair-error">⚠ Missing data for ${missing.join(', ')}. Fetch data and try again.</div>`;return;}
+
+    const baseITS=base==='USD'?Math.round(calcUSDScore(true)/2+50):calcITS(allData[base],false,base);
+    const quoteITS=quote==='USD'?Math.round(calcUSDScore(true)/2+50):calcITS(allData[quote],false,quote);
+    const pairScore=baseITS-quoteITS;
+    const abs=Math.abs(pairScore);
+    const itsDir=pairScore>20?'LONG':pairScore<-20?'SHORT':'NEUTRAL';
+
+    let title,color,lines;
+    if(itsDir==='NEUTRAL'){
+      title='⏸ NO-GO';color='#c9a35f';
+      lines=`<strong>ITS Engine (Forex):</strong> ${base} ITS ${baseITS} vs ${quote} ITS ${quoteITS} → differential ${pairScore>=0?'+':''}${pairScore}. That sits inside the ±20 neutral band — <strong>no directional edge</strong> from institutional positioning right now. Sit this one out regardless of which way you're leaning.`;
+    } else if((itsDir==='LONG'&&wantLong)||(itsDir==='SHORT'&&!wantLong)){
+      const strength=abs>40?'Strong':'Moderate';
+      title='✅ GO';color='#6f9e5c';
+      lines=`<strong>ITS Engine (Forex):</strong> ${base} ITS ${baseITS} vs ${quote} ITS ${quoteITS} → differential ${pairScore>=0?'+':''}${pairScore}. That favors <strong>${itsDir} ${base}/${quote}</strong> — a ${strength.toLowerCase()} signal — and it matches your intended ${direction}.`;
+    } else {
+      title='🚫 NO-GO';color='#c0674a';
+      lines=`<strong>ITS Engine (Forex):</strong> ${base} ITS ${baseITS} vs ${quote} ITS ${quoteITS} → differential ${pairScore>=0?'+':''}${pairScore}. That favors <strong>${itsDir} ${base}/${quote}</strong> — the opposite of your intended ${direction}. You'd be trading against institutional positioning.`;
+    }
+    resultEl.innerHTML=tfBigResult(title,color,lines);
+
+  } else {
+    const id=document.getElementById('tf-instrument').value;
+    if(!id){resultEl.innerHTML=`<div class="custom-pair-error">⚠ Select a metal first.</div>`;return;}
+    if(!allData[id]){resultEl.innerHTML=`<div class="custom-pair-error">⚠ No data for ${id}. Fetch data and try again.</div>`;return;}
+    const w=calcWilliamsIndex(allData[id],26);
+    if(!w){resultEl.innerHTML=`<div class="custom-pair-error">⚠ Not enough report history to compute the Williams Index for ${id}.</div>`;return;}
+
+    let title,color,lines;
+    if(w.signal==='bull'){
+      if(wantLong){title='✅ GO';color='#6f9e5c';lines=`<strong>Williams Method (26W Commercial COT):</strong> Index at ${w.index}/100 — Commercials are near their most long position of the past 26 weeks. That's an extreme BULL signal, and it matches your LONG.`;}
+      else{title='🚫 NO-GO';color='#c0674a';lines=`<strong>Williams Method (26W Commercial COT):</strong> Index at ${w.index}/100 — extreme BULL signal from commercials. A SHORT here goes against them.`;}
+    } else if(w.signal==='bear'){
+      if(!wantLong){title='✅ GO';color='#6f9e5c';lines=`<strong>Williams Method (26W Commercial COT):</strong> Index at ${w.index}/100 — Commercials are near their most short position of the past 26 weeks. That's an extreme BEAR signal, and it matches your SHORT.`;}
+      else{title='🚫 NO-GO';color='#c0674a';lines=`<strong>Williams Method (26W Commercial COT):</strong> Index at ${w.index}/100 — extreme BEAR signal from commercials. A LONG here goes against them.`;}
+    } else {
+      title='⏸ NO-GO';color='#c9a35f';
+      lines=`<strong>Williams Method (26W Commercial COT):</strong> Index at ${w.index}/100 — inside the neutral 10–90 zone. Williams gives <strong>no signal</strong> here in either direction. Stand aside until commercials reach an extreme (≤10 or ≥90).`;
+    }
+    resultEl.innerHTML=tfBigResult(title,color,lines);
+  }
+}
+
 function renderCustomPairChips(){
   const common=['EURUSD','GBPUSD','EURCHF','GBPJPY','AUDNZD','EURGBP','USDCAD','NZDCHF'];
   const el=document.getElementById('custom-pair-chips');
@@ -3166,7 +3292,7 @@ function renderDivergencePage(){
   }).join('');
 }
 
-window.addEventListener('load',()=>{initTheme();initQuoteRotation();renderCustomPairChips();renderSignalLog();});
+window.addEventListener('load',()=>{initTheme();initQuoteRotation();renderCustomPairChips();renderSignalLog();tfUpdateInstrumentOptions();});
 window.addEventListener('resize',()=>{if(selectedId&&allData[selectedId]) drawChart(allData[selectedId]);});
 </script>
 </body>
