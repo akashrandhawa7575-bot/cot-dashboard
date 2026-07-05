@@ -7,21 +7,31 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap');
   :root{
-    /* Warmer, softer dark — easier on eyes than pure black */
-    --bg:#16181d;--surface:#1e2029;--panel:#252830;--border:#30343f;
-    --accent:#5b9cf6;--bull:#4ade80;--bear:#f87171;--neutral:#fbbf24;
-    --text:#dde1ea;--muted:#8892a4;--subtle:#2a2e3a;
+    /* Dark theme — true black background, nature-toned accents */
+    --bg:#0a0b0a;--surface:#131513;--panel:#1a1c1a;--border:#2c2f2c;
+    --accent:#7fae82;--bull:#8bbf8e;--bear:#c17a54;--neutral:#c9a35f;
+    --text:#e6e8e6;--muted:#93a094;--subtle:#1e211e;
     --mono:'JetBrains Mono',monospace;--sans:'Inter',sans-serif;
-    --gold:#fbbf24;--purple:#c084fc;--cyan:#38bdf8;
+    --gold:#c9a35f;--purple:#9a8fae;--cyan:#6fa89a;
     --line-height:1.7;
   }
+  body.light-theme{
+    /* Light theme — white background, same nature accent family, darker for contrast */
+    --bg:#ffffff;--surface:#f6f7f4;--panel:#ffffff;--border:#dcded9;
+    --accent:#4f7f53;--bull:#4f7f53;--bear:#a1583a;--neutral:#9c7c3c;
+    --text:#1c211d;--muted:#63715f;--subtle:#eef1ec;
+    --gold:#9c7c3c;--purple:#6f6386;--cyan:#3f7568;
+  }
+  body.light-theme .flow-card,body.light-theme .pair-card,body.light-theme .disagg-card,
+  body.light-theme .extreme-card,body.light-theme .diverg-card,body.light-theme .currency-stat-card,
+  body.light-theme .top-trade-card,body.light-theme .strength-panel{box-shadow:0 1px 3px rgba(0,0,0,.06);}
   *{box-sizing:border-box;margin:0;padding:0}
   body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;font-size:15px;line-height:var(--line-height);-webkit-font-smoothing:antialiased;}
 
   /* HEADER */
   header{padding:18px 32px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);position:sticky;top:0;z-index:100;flex-wrap:wrap;gap:12px;}
   .logo{font-family:var(--mono);font-size:14px;font-weight:700;letter-spacing:.06em;color:var(--accent);text-transform:uppercase;}
-  .logo .v3badge{display:inline-block;background:linear-gradient(135deg,#5b9cf6,#c084fc,#38bdf8);color:#fff;font-size:10px;padding:2px 7px;border-radius:4px;margin-left:8px;vertical-align:middle;}
+  .logo .v3badge{display:inline-block;background:linear-gradient(135deg,#7fae82,#9a8fae,#6fa89a);color:#fff;font-size:10px;padding:2px 7px;border-radius:4px;margin-left:8px;vertical-align:middle;}
   .header-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
   #last-updated{font-size:12px;color:var(--muted);font-family:var(--mono);}
   .refresh-btn{background:var(--accent);color:#fff;border:none;padding:9px 20px;border-radius:8px;font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;transition:opacity .2s;display:flex;align-items:center;gap:8px;}
@@ -40,25 +50,25 @@
   .page{display:none;}
   .page.active{display:block;}
 
-  .section-title{font-size:12px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+  .section-title{font-size:13px;font-weight:700;font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
   .section-title::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);}
 
   /* TOP TRADE BANNER */
-  .top-trade-banner{background:linear-gradient(135deg,#0f172a,#1a1040);border:1px solid rgba(168,85,247,.3);border-radius:12px;padding:16px 20px;margin-bottom:20px;}
+  .top-trade-banner{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:20px;}
   .top-trade-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
-  .top-trade-title{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--purple);display:flex;align-items:center;gap:8px;}
+  .top-trade-title{font-family:var(--mono);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--purple);display:flex;align-items:center;gap:8px;}
   .top-trade-title::before{content:'🚀';}
-  .top-trade-subtitle{font-size:12px;color:var(--muted);}
+  .top-trade-subtitle{font-size:13px;font-weight:600;color:var(--muted);}
   .top-trade-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;}
   .top-trade-card{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;padding:12px 14px;position:relative;}
-  .top-trade-card.rank1{border-color:var(--gold);background:rgba(245,158,11,.06);}
+  .top-trade-card.rank1{border-color:var(--gold);background:rgba(201,163,95,.06);}
   .top-trade-card.rank2{border-color:rgba(156,163,175,.4);background:rgba(156,163,175,.03);}
   .top-trade-card.rank3{border-color:rgba(180,83,9,.4);background:rgba(180,83,9,.04);}
   .top-trade-rank{font-family:var(--mono);font-size:22px;font-weight:700;opacity:.3;position:absolute;top:10px;right:12px;}
   .top-trade-pair{font-family:var(--mono);font-size:20px;font-weight:700;margin-bottom:4px;}
   .top-trade-dir{font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;display:inline-block;margin-bottom:8px;}
-  .top-trade-dir.long{background:rgba(34,197,94,.2);color:var(--bull);}
-  .top-trade-dir.short{background:rgba(239,68,68,.2);color:var(--bear);}
+  .top-trade-dir.long{background:rgba(111,158,92,.2);color:var(--bull);}
+  .top-trade-dir.short{background:rgba(192,103,74,.2);color:var(--bear);}
   .top-trade-score-row{display:flex;align-items:center;gap:6px;}
   .top-trade-score-label{font-family:var(--mono);font-size:9px;color:var(--muted);}
   .top-trade-score-val{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--purple);}
@@ -66,17 +76,17 @@
   /* ITS BANNER */
   .its-banner{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:20px;}
   .its-header{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
-  .its-title{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--cyan);}
+  .its-title{font-family:var(--mono);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--cyan);}
   .its-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;}
   .its-card{background:var(--subtle);border-radius:8px;padding:10px 12px;text-align:center;}
   .its-currency{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--muted);margin-bottom:4px;}
   .its-score{font-family:var(--mono);font-size:22px;font-weight:700;margin-bottom:4px;}
   .its-label{font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:.05em;display:inline-block;}
-  .its-label.sb{background:rgba(34,197,94,.2);color:var(--bull);}
-  .its-label.b{background:rgba(134,239,172,.15);color:#86efac;}
-  .its-label.n{background:rgba(245,158,11,.15);color:var(--neutral);}
-  .its-label.be{background:rgba(252,165,165,.15);color:#fca5a5;}
-  .its-label.sbr{background:rgba(239,68,68,.2);color:var(--bear);}
+  .its-label.sb{background:rgba(111,158,92,.2);color:var(--bull);}
+  .its-label.b{background:rgba(168,207,158,.15);color:#a8cf9e;}
+  .its-label.n{background:rgba(201,163,95,.15);color:var(--neutral);}
+  .its-label.be{background:rgba(209,154,130,.15);color:#d19a82;}
+  .its-label.sbr{background:rgba(192,103,74,.2);color:var(--bear);}
   .its-bar{height:4px;border-radius:2px;margin-top:6px;background:var(--border);}
   .its-bar-fill{height:100%;border-radius:2px;transition:width .8s ease;}
 
@@ -88,14 +98,14 @@
   .flow-card.bear::before{background:var(--bear);}
   .flow-card.neutral::before{background:var(--neutral);}
   .flow-card:hover{border-color:var(--accent);transform:translateY(-1px);}
-  .flow-card.selected{border-color:var(--accent);background:#111d35;}
+  .flow-card.selected{border-color:var(--accent);background:#1b2921;}
   .flow-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;}
   .flow-card-name{font-weight:700;font-size:13px;}
   .flow-card-sub{font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:1px;}
   .signal-pill{font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;letter-spacing:.06em;text-transform:uppercase;}
-  .signal-pill.bull{background:rgba(34,197,94,.15);color:var(--bull);}
-  .signal-pill.bear{background:rgba(239,68,68,.15);color:var(--bear);}
-  .signal-pill.neutral{background:rgba(245,158,11,.15);color:var(--neutral);}
+  .signal-pill.bull{background:rgba(111,158,92,.15);color:var(--bull);}
+  .signal-pill.bear{background:rgba(192,103,74,.15);color:var(--bear);}
+  .signal-pill.neutral{background:rgba(201,163,95,.15);color:var(--neutral);}
   .flow-net{font-family:var(--mono);font-size:15px;font-weight:700;margin:4px 0 2px;}
   .flow-net.pos{color:var(--bull);}
   .flow-net.neg{color:var(--bear);}
@@ -159,7 +169,7 @@
   .cot-gauge-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
   .cot-gauge-title{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);}
   .cot-gauge-value{font-family:var(--mono);font-size:26px;font-weight:700;}
-  .cot-gauge-track{flex:1;height:12px;background:linear-gradient(to right,#ef4444,#f59e0b,#22c55e);border-radius:6px;position:relative;overflow:visible;}
+  .cot-gauge-track{flex:1;height:12px;background:linear-gradient(to right,#c0674a,#c9a35f,#6f9e5c);border-radius:6px;position:relative;overflow:visible;}
   .cot-gauge-needle{position:absolute;top:-4px;width:4px;height:20px;background:#fff;border-radius:2px;transform:translateX(-50%);transition:left .8s ease;box-shadow:0 0 6px rgba(255,255,255,.5);}
 
   /* ITS GAUGE */
@@ -210,21 +220,21 @@
   .strength-mom{font-family:var(--mono);font-size:9px;width:44px;text-align:right;flex-shrink:0;}
 
   /* CUSTOM PAIR BUILDER */
-  .custom-pair-box{background:linear-gradient(135deg,#1a1040,#0f172a);border:1px solid rgba(168,85,247,.3);border-radius:12px;padding:18px 20px;margin-bottom:20px;}
+  .custom-pair-box{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:20px;}
   .custom-pair-title{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--purple);display:flex;align-items:center;gap:10px;margin-bottom:4px;}
-  .custom-pair-badge{font-family:var(--sans);font-size:9px;font-weight:600;background:rgba(192,132,252,.15);color:var(--purple);padding:2px 8px;border-radius:20px;letter-spacing:.03em;}
+  .custom-pair-badge{font-family:var(--sans);font-size:9px;font-weight:600;background:rgba(154,143,174,.15);color:var(--purple);padding:2px 8px;border-radius:20px;letter-spacing:.03em;}
   .custom-pair-sub{font-size:12px;color:var(--muted);margin-bottom:14px;}
   .custom-pair-input-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
   .custom-pair-input{flex:1;min-width:200px;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-family:var(--mono);font-size:14px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;outline:none;transition:border-color .2s;}
   .custom-pair-input:focus{border-color:var(--accent);}
   .custom-pair-input::placeholder{color:var(--muted);text-transform:none;font-family:var(--sans);font-weight:400;letter-spacing:0;}
-  .custom-pair-btn{background:linear-gradient(135deg,#5b9cf6,#c084fc);color:#fff;border:none;padding:10px 22px;border-radius:8px;font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;transition:opacity .2s;white-space:nowrap;}
+  .custom-pair-btn{background:linear-gradient(135deg,#7fae82,#9a8fae);color:#fff;border:none;padding:10px 22px;border-radius:8px;font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;transition:opacity .2s;white-space:nowrap;}
   .custom-pair-btn:hover{opacity:.88;}
   .custom-pair-btn:disabled{opacity:.4;cursor:default;}
   .custom-pair-chips{display:flex;gap:6px;flex-wrap:wrap;}
   .custom-pair-chip{font-family:var(--mono);font-size:10px;font-weight:600;background:var(--subtle);border:1px solid var(--border);color:var(--muted);padding:4px 10px;border-radius:20px;cursor:pointer;transition:all .15s;}
   .custom-pair-chip:hover{border-color:var(--accent);color:var(--accent);}
-  .custom-pair-error{font-family:var(--mono);font-size:12px;color:var(--bear);background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:8px;padding:10px 14px;margin-top:14px;}
+  .custom-pair-error{font-family:var(--mono);font-size:12px;color:var(--bear);background:rgba(192,103,74,.08);border:1px solid rgba(192,103,74,.25);border-radius:8px;padding:10px 14px;margin-top:14px;}
 
   /* CUSTOM PAIR REPORT */
   .cpr-wrap{margin-top:16px;border-top:1px solid var(--border);padding-top:16px;}
@@ -252,8 +262,8 @@
   .cpr-flow-cell-val{font-family:var(--mono);font-size:13px;font-weight:700;}
   .cpr-checklist{display:flex;flex-wrap:wrap;gap:5px;}
   .cpr-check{font-family:var(--mono);font-size:9px;padding:3px 8px;border-radius:4px;}
-  .cpr-check.pass{background:rgba(34,197,94,.12);color:#86efac;}
-  .cpr-check.fail{background:rgba(239,68,68,.08);color:#fca5a5;}
+  .cpr-check.pass{background:rgba(111,158,92,.12);color:#a8cf9e;}
+  .cpr-check.fail{background:rgba(192,103,74,.08);color:#d19a82;}
   .cpr-verdict{font-size:13px;line-height:1.7;color:var(--text);}
   .cpr-verdict strong{color:var(--accent);}
 
@@ -263,19 +273,19 @@
   .pair-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
   .pair-card.strong-buy::before{background:var(--bull);}
   .pair-card.strong-sell::before{background:var(--bear);}
-  .pair-card.weak-buy::before{background:rgba(34,197,94,.4);}
-  .pair-card.weak-sell::before{background:rgba(239,68,68,.4);}
+  .pair-card.weak-buy::before{background:rgba(111,158,92,.4);}
+  .pair-card.weak-sell::before{background:rgba(192,103,74,.4);}
   .pair-card.neutral-pair::before{background:var(--neutral);}
-  .pair-card.top-pick{border-color:var(--gold);box-shadow:0 0 14px rgba(245,158,11,.15);}
+  .pair-card.top-pick{border-color:var(--gold);box-shadow:0 0 14px rgba(201,163,95,.15);}
   .pair-name{font-family:var(--mono);font-size:17px;font-weight:700;margin-bottom:3px;}
   .pair-score-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
   .pair-score{font-family:var(--mono);font-size:24px;font-weight:700;}
   .pair-signal-pill{font-family:var(--mono);font-size:9px;font-weight:700;padding:3px 8px;border-radius:20px;text-transform:uppercase;}
-  .pair-signal-pill.strong-buy{background:rgba(34,197,94,.2);color:var(--bull);}
-  .pair-signal-pill.strong-sell{background:rgba(239,68,68,.2);color:var(--bear);}
-  .pair-signal-pill.weak-buy{background:rgba(34,197,94,.1);color:#86efac;}
-  .pair-signal-pill.weak-sell{background:rgba(239,68,68,.1);color:#fca5a5;}
-  .pair-signal-pill.neutral-pair{background:rgba(245,158,11,.15);color:var(--neutral);}
+  .pair-signal-pill.strong-buy{background:rgba(111,158,92,.2);color:var(--bull);}
+  .pair-signal-pill.strong-sell{background:rgba(192,103,74,.2);color:var(--bear);}
+  .pair-signal-pill.weak-buy{background:rgba(111,158,92,.1);color:#a8cf9e;}
+  .pair-signal-pill.weak-sell{background:rgba(192,103,74,.1);color:#d19a82;}
+  .pair-signal-pill.neutral-pair{background:rgba(201,163,95,.15);color:var(--neutral);}
   .pair-breakdown{font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:8px;}
   .pair-bar-track{height:5px;background:var(--subtle);border-radius:3px;overflow:hidden;}
   .pair-bar-fill{height:100%;border-radius:3px;transition:width .8s ease;}
@@ -289,14 +299,14 @@
   /* EXTREMES PAGE */
   .extremes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-bottom:20px;}
   .extreme-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;position:relative;}
-  .extreme-card.extreme-long{border-color:rgba(239,68,68,.4);}
-  .extreme-card.extreme-short{border-color:rgba(34,197,94,.4);}
+  .extreme-card.extreme-long{border-color:rgba(192,103,74,.4);}
+  .extreme-card.extreme-short{border-color:rgba(111,158,92,.4);}
   .extreme-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
   .extreme-name{font-size:15px;font-weight:700;}
   .extreme-pct-pill{font-family:var(--mono);font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;}
-  .extreme-pct-pill.danger{background:rgba(239,68,68,.2);color:var(--bear);}
-  .extreme-pct-pill.opportunity{background:rgba(34,197,94,.2);color:var(--bull);}
-  .extreme-pct-pill.caution{background:rgba(245,158,11,.2);color:var(--neutral);}
+  .extreme-pct-pill.danger{background:rgba(192,103,74,.2);color:var(--bear);}
+  .extreme-pct-pill.opportunity{background:rgba(111,158,92,.2);color:var(--bull);}
+  .extreme-pct-pill.caution{background:rgba(201,163,95,.2);color:var(--neutral);}
   .extreme-pct-pill.normal{background:var(--subtle);color:var(--muted);}
   .percentile-bar{height:7px;background:var(--subtle);border-radius:4px;overflow:hidden;margin-bottom:7px;}
   .percentile-fill{height:100%;border-radius:4px;transition:width .8s ease;}
@@ -307,12 +317,12 @@
   /* DIVERGENCE PAGE */
   .diverg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;}
   .diverg-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;}
-  .diverg-card.detected{border-color:rgba(168,85,247,.4);}
+  .diverg-card.detected{border-color:rgba(154,143,174,.4);}
   .diverg-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
   .diverg-name{font-size:14px;font-weight:700;}
   .diverg-badge{font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;text-transform:uppercase;}
-  .diverg-badge.bearish{background:rgba(239,68,68,.2);color:var(--bear);}
-  .diverg-badge.bullish{background:rgba(34,197,94,.2);color:var(--bull);}
+  .diverg-badge.bearish{background:rgba(192,103,74,.2);color:var(--bear);}
+  .diverg-badge.bullish{background:rgba(111,158,92,.2);color:var(--bull);}
   .diverg-badge.none{background:var(--subtle);color:var(--muted);}
   .diverg-rows{display:flex;flex-direction:column;gap:6px;margin-bottom:10px;}
   .diverg-row{display:flex;align-items:center;justify-content:space-between;}
@@ -338,8 +348,8 @@
 
   /* DISAGGREGATED PAGE */
   .disagg-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;position:relative;}
-  .disagg-card.strong-am{border-color:rgba(91,156,246,.5);}
-  .disagg-card.strong-lf{border-color:rgba(192,132,252,.5);}
+  .disagg-card.strong-am{border-color:rgba(127,174,130,.5);}
+  .disagg-card.strong-lf{border-color:rgba(154,143,174,.5);}
   .disagg-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
   .disagg-name{font-size:15px;font-weight:700;}
   .disagg-report-badge{font-family:var(--mono);font-size:8px;padding:2px 6px;border-radius:3px;background:var(--subtle);color:var(--cyan);}
@@ -375,14 +385,14 @@
   .loading-overlay{text-align:center;padding:50px 20px;color:var(--muted);}
   .loading-overlay .spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px;}
   .loading-overlay p{font-family:var(--mono);font-size:11px;letter-spacing:.05em;}
-  .error-box{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:14px;color:var(--bear);font-size:12px;font-family:var(--mono);margin-bottom:10px;}
-  .info-box{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.25);border-radius:8px;padding:12px 14px;color:var(--accent);font-size:11px;font-family:var(--mono);margin-bottom:14px;}
-  .empty-state{text-align:center;padding:40px 20px;color:var(--muted);font-family:var(--mono);font-size:12px;}
+  .error-box{background:rgba(192,103,74,.08);border:1px solid rgba(192,103,74,.3);border-radius:8px;padding:14px;color:var(--bear);font-size:12px;font-family:var(--mono);margin-bottom:10px;}
+  .info-box{background:rgba(127,174,130,.08);border:1px solid rgba(127,174,130,.25);border-radius:8px;padding:12px 14px;color:var(--accent);font-size:12px;font-weight:600;font-family:var(--mono);margin-bottom:14px;}
+  .empty-state{text-align:center;padding:40px 20px;color:var(--muted);font-family:var(--mono);font-size:13px;font-weight:600;}
   .empty-state .icon{font-size:32px;margin-bottom:10px;}
   /* ENGINE MODE BADGE */
   .engine-badge{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.06em;}
-  .engine-badge.forex{background:rgba(91,156,246,.15);color:var(--accent);border:1px solid rgba(91,156,246,.3);}
-  .engine-badge.metals{background:rgba(251,191,36,.15);color:var(--gold);border:1px solid rgba(251,191,36,.3);}
+  .engine-badge.forex{background:rgba(127,174,130,.15);color:var(--accent);border:1px solid rgba(127,174,130,.3);}
+  .engine-badge.metals{background:rgba(201,163,95,.15);color:var(--gold);border:1px solid rgba(201,163,95,.3);}
   .engine-breakdown{background:var(--subtle);border-radius:10px;padding:12px 14px;margin-bottom:14px;}
   .engine-breakdown-title{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
   .engine-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
@@ -404,18 +414,18 @@
   .oi-trend-interp{font-size:11px;color:var(--muted);margin-top:3px;}
   /* Z-SCORE & NORMALIZATION */
   .zscore-wrap{background:var(--subtle);border-radius:8px;padding:10px 12px;margin-bottom:10px;}
-  .zscore-label{font-family:var(--mono);font-size:8px;text-transform:uppercase;letter-spacing:.06em;color:#38bdf8;margin-bottom:6px;}
+  .zscore-label{font-family:var(--mono);font-size:8px;text-transform:uppercase;letter-spacing:.06em;color:#6fa89a;margin-bottom:6px;}
   .zscore-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
   .zscore-item{text-align:center;}
   .zscore-val{font-family:var(--mono);font-size:16px;font-weight:700;}
   .zscore-sub{font-family:var(--mono);font-size:8px;color:var(--muted);}
   /* FLOW PERSISTENCE */
   .persist-wrap{background:var(--subtle);border-radius:8px;padding:10px 12px;margin-bottom:10px;}
-  .persist-label{font-family:var(--mono);font-size:8px;text-transform:uppercase;letter-spacing:.06em;color:#a78bfa;margin-bottom:6px;}
+  .persist-label{font-family:var(--mono);font-size:8px;text-transform:uppercase;letter-spacing:.06em;color:#9a8fae;margin-bottom:6px;}
   .persist-streak{font-family:var(--mono);font-size:18px;font-weight:700;}
   .persist-desc{font-size:10px;color:var(--muted);margin-top:3px;}
   /* CONFIDENCE SCORE */
-  .conf-wrap{background:linear-gradient(135deg,#0f172a,#1a1040);border:1px solid rgba(168,85,247,.25);border-radius:10px;padding:12px 14px;margin-bottom:12px;}
+  .conf-wrap{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:12px;}
   .conf-title{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--purple);margin-bottom:8px;}
   .conf-score-big{font-family:var(--mono);font-size:32px;font-weight:700;line-height:1;}
   .conf-prob{font-family:var(--mono);font-size:12px;margin-top:4px;}
@@ -427,8 +437,8 @@
   .matrix-table th,.matrix-table td{padding:7px 10px;border:1px solid var(--border);text-align:center;min-width:70px;}
   .matrix-table th{background:var(--panel);color:var(--muted);font-size:10px;font-weight:700;letter-spacing:.05em;}
   .matrix-table .row-header{background:var(--panel);color:var(--text);font-weight:700;text-align:left;}
-  .matrix-cell-pos{background:rgba(34,197,94,.15);color:var(--bull);}
-  .matrix-cell-neg{background:rgba(239,68,68,.15);color:var(--bear);}
+  .matrix-cell-pos{background:rgba(111,158,92,.15);color:var(--bull);}
+  .matrix-cell-neg{background:rgba(192,103,74,.15);color:var(--bear);}
   .matrix-cell-zero{background:var(--subtle);color:var(--muted);}
   .matrix-cell-self{background:var(--panel);color:var(--border);}
   .currency-stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:20px;}
@@ -447,8 +457,8 @@
   .williams-table td{padding:9px 12px;border:1px solid var(--border);vertical-align:middle;}
   .williams-table tbody tr:hover{background:rgba(255,255,255,.02);}
   .w-signal-pill{font-family:var(--mono);font-size:9px;font-weight:700;padding:3px 8px;border-radius:20px;display:inline-block;text-transform:uppercase;}
-  .w-agree{background:rgba(34,197,94,.15);color:#22c55e;font-family:var(--mono);font-size:9px;font-weight:700;padding:3px 8px;border-radius:4px;}
-  .w-diverge{background:rgba(168,85,247,.15);color:#c084fc;font-family:var(--mono);font-size:9px;font-weight:700;padding:3px 8px;border-radius:4px;}
+  .w-agree{background:rgba(111,158,92,.15);color:#6f9e5c;font-family:var(--mono);font-size:9px;font-weight:700;padding:3px 8px;border-radius:4px;}
+  .w-diverge{background:rgba(154,143,174,.15);color:#9a8fae;font-family:var(--mono);font-size:9px;font-weight:700;padding:3px 8px;border-radius:4px;}
   .w-log-btn{background:var(--subtle);color:var(--accent);border:1px solid var(--border);padding:3px 10px;border-radius:6px;font-family:var(--mono);font-size:9px;cursor:pointer;transition:all .15s;}
   .w-log-btn:hover{background:var(--accent);color:#fff;}
   /* SCORE CARDS */
@@ -461,9 +471,9 @@
   .modal-input{width:100%;background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--text);font-family:var(--mono);font-size:13px;outline:none;transition:border-color .2s;}
   .modal-input:focus{border-color:var(--accent);}
   /* OUTCOME BADGES */
-  .outcome-win{background:rgba(34,197,94,.15);color:#22c55e;font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;}
-  .outcome-loss{background:rgba(239,68,68,.15);color:#ef4444;font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;}
-  .outcome-pending{background:rgba(245,158,11,.15);color:#fbbf24;font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;}
+  .outcome-win{background:rgba(111,158,92,.15);color:#6f9e5c;font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;}
+  .outcome-loss{background:rgba(192,103,74,.15);color:#c0674a;font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;}
+  .outcome-pending{background:rgba(201,163,95,.15);color:#c9a35f;font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;}
   /* WILLIAMS MINI on cards */
   .will-mini{display:flex;align-items:center;gap:6px;margin-top:4px;}
   .will-mini-label{font-family:var(--mono);font-size:8px;color:var(--muted);}
@@ -478,6 +488,9 @@
   <div class="logo">COT Intelligence <span class="v3badge">v7 PRO</span> <span style="color:var(--muted);font-weight:400;font-size:11px;margin-left:8px;">Institutional Decision Engine</span></div>
   <div class="header-right">
     <span id="last-updated" style="font-size:10px;">Not loaded</span>
+    <button class="refresh-btn" id="theme-toggle-btn" onclick="toggleTheme()" style="background:var(--panel);color:var(--text);border:1px solid var(--border);">
+      <span id="theme-toggle-icon">🌙</span> <span id="theme-toggle-label">Dark</span>
+    </button>
     <button class="refresh-btn" id="refresh-btn" onclick="loadData()">
       <span id="refresh-icon">↻</span> Fetch COT Data
     </button>
@@ -495,6 +508,10 @@
   <button class="nav-tab" onclick="switchPage('divergence',this)">🔍 Divergence</button>
   <button class="nav-tab" onclick="switchPage('williams',this)">📊 Williams vs ITS</button>
 </nav>
+
+<div style="text-align:center;padding:10px 20px;font-family:var(--mono);font-size:12px;color:var(--muted);background:var(--surface);border-bottom:1px solid var(--border);">
+  🌿 <em>"The trend is your friend until the end when it bends."</em> — Ed Seykota
+</div>
 
 <main>
 <div id="status-area"></div>
@@ -520,7 +537,7 @@
     <div class="its-header">
       <div>
         <div class="its-title">⚡ Institutional Trend Score (ITS)</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px;">
+        <div style="font-size:13px;font-weight:600;color:var(--muted);margin-top:2px;">
           <span style="color:var(--accent)">FOREX ENGINE:</span> Non-Commercial 35% · Flow 35% · Currency Strength 20% · Commercial 10% &nbsp;|&nbsp;
           <span style="color:var(--gold)">METALS ENGINE:</span> Commercial 35% · Comm Divergence 25% · OI 25% · Non-Commercial 15%
         </div>
@@ -591,7 +608,7 @@
     </div>
 
     <!-- ⚠️ Data lag notice -->
-    <div style="background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);border-radius:6px;padding:8px 12px;margin-bottom:14px;font-family:var(--mono);font-size:10px;color:var(--neutral);">
+    <div style="background:rgba(201,163,95,.07);border:1px solid rgba(201,163,95,.2);border-radius:6px;padding:8px 12px;margin-bottom:14px;font-family:var(--mono);font-size:10px;color:var(--neutral);">
       ⚠️ <strong>Report Lag:</strong> COT data reflects positions held as of <strong>Tuesday</strong>, published Friday. This data is 3 days old when released — markets can move significantly in that window. Always confirm with current price action before entry.
     </div>
 
@@ -629,7 +646,7 @@
     <div class="cot-gauge-wrap">
       <div class="cot-gauge-header"><span class="cot-gauge-title">COT INDEX (52-WEEK RANGE)</span><span class="cot-gauge-value" id="d-gauge-val">—</span></div>
       <div style="display:flex;align-items:center;gap:8px;">
-        <div class="cot-gauge-track" style="flex:1;height:12px;background:linear-gradient(to right,#ef4444,#f59e0b,#22c55e);border-radius:6px;position:relative;overflow:visible;">
+        <div class="cot-gauge-track" style="flex:1;height:12px;background:linear-gradient(to right,#c0674a,#c9a35f,#6f9e5c);border-radius:6px;position:relative;overflow:visible;">
           <div class="cot-gauge-needle" id="d-gauge-needle" style="left:50%;"></div>
         </div>
       </div>
@@ -728,7 +745,7 @@
 
 <!-- ═══════════════ WILLIAMS vs ITS PAGE ═══════════════ -->
 <div class="page" id="page-williams">
-  <div class="info-box">📊 <strong>Williams Method</strong> uses the <strong>Commercial COT Index (26-week lookback)</strong> as the primary signal. Extremes ≥90 = Bullish, ≤10 = Bearish. Compare against your ITS score to see which method gives better signals for each market. Log your trades below to track which method outperforms over time.</div>
+  <div class="info-box">📊 <strong>Williams Method</strong> uses the <strong>Commercial COT Index (26-week lookback)</strong> as the primary signal. Extremes ≥90 = Bullish, ≤10 = Bearish. Compare against your ITS score to see which method gives better signals for each market. The <strong>Metals COT Analysis</strong> column reads the Commercial Divergence (spec vs. commercial gap) for Gold/Silver/Copper/Platinum/Palladium — the highest-conviction metals setup — and notes when Williams' 26-week extreme lines up with it. Log your trades below to track which method outperforms over time.</div>
 
   <!-- COMPARISON TABLE -->
   <div class="section-title">Method Comparison — All Markets</div>
@@ -741,12 +758,13 @@
           <th>ITS Signal</th>
           <th>Williams<br><span style="font-weight:400;color:var(--muted);font-size:9px;">Comm COT 26W</span></th>
           <th>Williams Signal</th>
+          <th>Metals COT Analysis<br><span style="font-weight:400;color:var(--muted);font-size:9px;">Comm Divergence read</span></th>
           <th>Agreement</th>
           <th>Log</th>
         </tr>
       </thead>
       <tbody id="williams-compare-body">
-        <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px;font-family:var(--mono);font-size:12px;">Fetch COT data first</td></tr>
+        <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px;font-family:var(--mono);font-size:12px;">Fetch COT data first</td></tr>
       </tbody>
     </table>
   </div>
@@ -756,7 +774,7 @@
   <div style="background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:20px;">
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
       <div style="font-family:var(--mono);font-size:11px;color:var(--muted);">Record which method's signal you traded. Update outcome later to track win rates.</div>
-      <button onclick="showLogModal()" style="background:linear-gradient(135deg,#5b9cf6,#c084fc);color:#fff;border:none;padding:8px 18px;border-radius:8px;font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;">+ Log New Signal</button>
+      <button onclick="showLogModal()" style="background:linear-gradient(135deg,#7fae82,#9a8fae);color:#fff;border:none;padding:8px 18px;border-radius:8px;font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;">+ Log New Signal</button>
     </div>
 
     <!-- SCORE CARDS -->
@@ -816,7 +834,7 @@
       <div><label class="modal-label">Notes (optional)</label><input type="text" id="log-notes" class="modal-input" placeholder="e.g. GBP/USD long, H4 OB entry"></div>
     </div>
     <div style="display:flex;gap:10px;margin-top:18px;">
-      <button onclick="saveLogEntry()" style="flex:1;background:linear-gradient(135deg,#5b9cf6,#c084fc);color:#fff;border:none;padding:10px;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px;">Save Signal</button>
+      <button onclick="saveLogEntry()" style="flex:1;background:linear-gradient(135deg,#7fae82,#9a8fae);color:#fff;border:none;padding:10px;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px;">Save Signal</button>
       <button onclick="closeLogModal()" style="background:var(--panel);color:var(--muted);border:1px solid var(--border);padding:10px 16px;border-radius:8px;cursor:pointer;font-size:13px;">Cancel</button>
     </div>
   </div>
@@ -851,6 +869,30 @@ const FOREX_PAIRS = [
 ];
 
 let allData={}, disaggData={}, selectedId=null, activeCategory='all', activeDisaggCategory='all', activePage='dashboard';
+
+// ─── THEME TOGGLE (Dark / Light) ──────────────────────────────────────────────
+const THEME_KEY='cot_theme_v1';
+function applyTheme(theme){
+  const isLight=theme==='light';
+  document.body.classList.toggle('light-theme',isLight);
+  const icon=document.getElementById('theme-toggle-icon');
+  const label=document.getElementById('theme-toggle-label');
+  if(icon) icon.textContent=isLight?'☀️':'🌙';
+  if(label) label.textContent=isLight?'Light':'Dark';
+  // Redraw canvas chart since it's drawn with explicit colors, not CSS vars
+  if(selectedId&&allData[selectedId]) drawChart(allData[selectedId]);
+}
+function toggleTheme(){
+  const isLight=document.body.classList.contains('light-theme');
+  const next=isLight?'dark':'light';
+  try{ localStorage.setItem(THEME_KEY,next); }catch(e){}
+  applyTheme(next);
+}
+function initTheme(){
+  let saved='dark';
+  try{ saved=localStorage.getItem(THEME_KEY)||'dark'; }catch(e){}
+  applyTheme(saved);
+}
 
 const API_BASE='https://publicreporting.cftc.gov/resource/6dca-aqww.json';
 // Disaggregated Futures — separates Asset Managers, Leveraged Funds, Dealer/Intermediary
@@ -975,11 +1017,11 @@ function calcWilliamsIndex(rows, weeks=26){
 function williamsLabel(w){
   if(!w) return {text:'N/A',color:var_muted,pill:'—',pillCls:''};
   const {index,signal}=w;
-  if(signal==='bull')      return {text:`🟢 BULL EXTREME`,color:'#22c55e',pill:'🟢 BULL',pillCls:'bull'};
-  if(signal==='bear')      return {text:`🔴 BEAR EXTREME`,color:'#ef4444',pill:'🔴 BEAR',pillCls:'bear'};
-  if(signal==='lean-bull') return {text:`Leaning Bull`,color:'#86efac',pill:`↑ ${index}`,pillCls:'lean-b'};
-  if(signal==='lean-bear') return {text:`Leaning Bear`,color:'#fca5a5',pill:`↓ ${index}`,pillCls:'lean-s'};
-  return {text:`Neutral`,color:'#f59e0b',pill:`~ ${index}`,pillCls:'neutral'};
+  if(signal==='bull')      return {text:`🟢 BULL EXTREME`,color:'#6f9e5c',pill:'🟢 BULL',pillCls:'bull'};
+  if(signal==='bear')      return {text:`🔴 BEAR EXTREME`,color:'#c0674a',pill:'🔴 BEAR',pillCls:'bear'};
+  if(signal==='lean-bull') return {text:`Leaning Bull`,color:'#a8cf9e',pill:`↑ ${index}`,pillCls:'lean-b'};
+  if(signal==='lean-bear') return {text:`Leaning Bear`,color:'#d19a82',pill:`↓ ${index}`,pillCls:'lean-s'};
+  return {text:`Neutral`,color:'#c9a35f',pill:`~ ${index}`,pillCls:'neutral'};
 }
 
 // Compare ITS direction vs Williams direction
@@ -1015,9 +1057,9 @@ function williamsPairAgreement(itsPairScore, willPairScore){
   if(willPairScore===null||willPairScore===undefined) return {text:'No Williams Data',cls:'',color:var_muted};
   const itsDir=itsPairScore>10?'bull':itsPairScore<-10?'bear':'neutral';
   const willDir=willPairScore>10?'bull':willPairScore<-10?'bear':'neutral';
-  if(itsDir==='neutral'||willDir==='neutral') return {text:'⚠ One Neutral',cls:'',color:'#f59e0b'};
-  if(itsDir===willDir) return {text:'✅ Aligned',cls:'',color:'#22c55e'};
-  return {text:'⚡ Diverge',cls:'',color:'#c084fc'};
+  if(itsDir==='neutral'||willDir==='neutral') return {text:'⚠ One Neutral',cls:'',color:'#c9a35f'};
+  if(itsDir===willDir) return {text:'✅ Aligned',cls:'',color:'#6f9e5c'};
+  return {text:'⚡ Diverge',cls:'',color:'#9a8fae'};
 }
 
 // ─── SIGNAL LOG (localStorage) ────────────────────────────────────────────────
@@ -1114,14 +1156,14 @@ function renderSignalLog(){
   }
   body.innerHTML=entries.map(e=>{
     const outCls=e.outcome==='WIN'?'outcome-win':e.outcome==='LOSS'?'outcome-loss':'outcome-pending';
-    const dirColor=e.direction==='LONG'?'#22c55e':'#ef4444';
+    const dirColor=e.direction==='LONG'?'#6f9e5c':'#c0674a';
     return `<tr>
       <td style="color:var(--muted)">${e.date}</td>
       <td style="font-weight:700">${e.market}</td>
       <td style="color:${dirColor};font-weight:700">${e.direction}</td>
-      <td><span style="font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;background:${e.method==='ITS'?'rgba(91,156,246,.15)':e.method==='WILLIAMS'?'rgba(34,197,94,.15)':'rgba(168,85,247,.15)'};color:${e.method==='ITS'?'#5b9cf6':e.method==='WILLIAMS'?'#22c55e':'#c084fc'}">${e.method}</span></td>
-      <td style="color:#5b9cf6">${e.itsScore}</td>
-      <td style="color:#22c55e">${e.willScore}</td>
+      <td><span style="font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;background:${e.method==='ITS'?'rgba(127,174,130,.15)':e.method==='WILLIAMS'?'rgba(111,158,92,.15)':'rgba(154,143,174,.15)'};color:${e.method==='ITS'?'#7fae82':e.method==='WILLIAMS'?'#6f9e5c':'#9a8fae'}">${e.method}</span></td>
+      <td style="color:#7fae82">${e.itsScore}</td>
+      <td style="color:#6f9e5c">${e.willScore}</td>
       <td>
         <select onchange="updateOutcome(${e.id},this.value)" style="background:var(--panel);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:9px;padding:2px 6px;">
           <option ${e.outcome==='PENDING'?'selected':''}>PENDING</option>
@@ -1135,12 +1177,30 @@ function renderSignalLog(){
   }).join('');
 }
 
+// ─── METALS COT ANALYSIS (Commercial Divergence read, Williams-informed) ─────
+// For metals, the Williams Method's Commercial COT Index doubles as the core
+// input to the Commercial Divergence signal (rising Comm Index = shorts
+// covering = bullish). This gives a plain-language read specific to metals,
+// separate from the general ITS/Williams columns.
+function metalsCotAnalysisLabel(rows,w){
+  if(!rows||rows.length<5) return {text:'N/A',color:var_muted,pill:''};
+  const metalsResult=calcMetalsITS(rows);
+  const div=metalsResult.divergenceVal;
+  if(div===undefined||div===null) return {text:'N/A',color:var_muted,pill:''};
+  const wExtreme=w&&(w.signal==='bull'||w.signal==='bear');
+  if(div>=30) return {text:'🔥 Premium Bull Setup',color:'#6f9e5c',pill:`Div +${div.toFixed(0)}${wExtreme?' · Williams confirms':''}`};
+  if(div>=15) return {text:'📈 Bullish Divergence',color:'#a8cf9e',pill:`Div +${div.toFixed(0)}`};
+  if(div<=-30) return {text:'🚨 Bearish Divergence',color:'#c0674a',pill:`Div ${div.toFixed(0)}${wExtreme?' · Williams confirms':''}`};
+  if(div<=-15) return {text:'📉 Bearish Bias',color:'#d19a82',pill:`Div ${div.toFixed(0)}`};
+  return {text:'⚖️ Aligned / No Edge',color:'#c9a35f',pill:`Div ${div>=0?'+':''}${div.toFixed(0)}`};
+}
+
 // ─── WILLIAMS vs ITS COMPARISON PAGE ─────────────────────────────────────────
 function renderWilliamsPage(){
   const body=document.getElementById('williams-compare-body');
   if(!body) return;
   if(Object.keys(allData).length===0){
-    body.innerHTML=`<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px;font-family:var(--mono);font-size:12px;">Fetch COT data first</td></tr>`;
+    body.innerHTML=`<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px;font-family:var(--mono);font-size:12px;">Fetch COT data first</td></tr>`;
     renderSignalLog();
     return;
   }
@@ -1152,19 +1212,24 @@ function renderWilliamsPage(){
     const w=calcWilliamsIndex(rows,26);
     const wLbl=williamsLabel(w);
     const compare=compareSignals(its,w);
-    return {m,its,itsLbl,w,wLbl,compare};
+    const metalsLbl=isMetals?metalsCotAnalysisLabel(rows,w):null;
+    return {m,its,itsLbl,w,wLbl,compare,isMetals,metalsLbl};
   });
 
-  body.innerHTML=rows.map(({m,its,itsLbl,w,wLbl,compare})=>{
+  body.innerHTML=rows.map(({m,its,itsLbl,w,wLbl,compare,isMetals,metalsLbl})=>{
     const wColor=w?cotIndexColor(w.index):var_muted;
     const itsVal=allData[m.id]?calcITS(allData[m.id],m.cat==='metals',m.id):0;
     const wVal=w?w.index:0;
+    const metalsCell=isMetals&&metalsLbl
+      ?`<span style="color:${metalsLbl.color};font-weight:700;">${metalsLbl.text}</span>${metalsLbl.pill?`<br><span style="font-family:var(--mono);font-size:8px;color:var(--muted);">${metalsLbl.pill}</span>`:''}`
+      :`<span style="color:var(--muted);font-size:10px;">— forex, n/a —</span>`;
     return `<tr>
       <td style="font-weight:700">${m.name}</td>
       <td style="font-family:var(--mono);color:${itsLbl.color};font-weight:700">${its}</td>
-      <td><span class="w-signal-pill" style="background:${its>=60?'rgba(34,197,94,.15)':its<=40?'rgba(239,68,68,.15)':'rgba(245,158,11,.15)'};color:${itsLbl.color}">${itsLbl.text}</span></td>
+      <td><span class="w-signal-pill" style="background:${its>=60?'rgba(111,158,92,.15)':its<=40?'rgba(192,103,74,.15)':'rgba(201,163,95,.15)'};color:${itsLbl.color}">${itsLbl.text}</span></td>
       <td style="font-family:var(--mono);color:${wColor};font-weight:700">${w?w.index:'-'}<span style="color:var(--muted);font-size:9px;margin-left:4px;">/100</span></td>
-      <td><span class="w-signal-pill" style="background:${w&&w.signal==='bull'?'rgba(34,197,94,.15)':w&&w.signal==='bear'?'rgba(239,68,68,.15)':'rgba(245,158,11,.15)'};color:${wLbl.color}">${wLbl.text}</span></td>
+      <td><span class="w-signal-pill" style="background:${w&&w.signal==='bull'?'rgba(111,158,92,.15)':w&&w.signal==='bear'?'rgba(192,103,74,.15)':'rgba(201,163,95,.15)'};color:${wLbl.color}">${wLbl.text}</span></td>
+      <td style="text-align:left;">${metalsCell}</td>
       <td><span class="${compare.cls}">${compare.text}</span></td>
       <td><button class="w-log-btn" onclick="showLogModal('${m.id}',${itsVal},${wVal})">+ Log</button></td>
     </tr>`;
@@ -1245,10 +1310,10 @@ function calcFlowPersistence(rows){
 function persistenceLabel(p){
   if(!p||p.dir==='none') return {text:'No clear direction',color:var_muted};
   const dir=p.dir==='bull'?'▲ Buying':'▼ Selling';
-  if(p.streak>=8) return {text:`${dir} ${p.streak}wk 🔥 Strong Commitment`,color:p.dir==='bull'?'#22c55e':'#ef4444'};
-  if(p.streak>=5) return {text:`${dir} ${p.streak}wk — Building`,color:p.dir==='bull'?'#86efac':'#fca5a5'};
-  if(p.streak>=3) return {text:`${dir} ${p.streak}wk — Early trend`,color:p.dir==='bull'?'#d1fae5':'#fee2e2'};
-  return {text:`${dir} ${p.streak}wk — Too short`,color:'#f59e0b'};
+  if(p.streak>=8) return {text:`${dir} ${p.streak}wk 🔥 Strong Commitment`,color:p.dir==='bull'?'#6f9e5c':'#c0674a'};
+  if(p.streak>=5) return {text:`${dir} ${p.streak}wk — Building`,color:p.dir==='bull'?'#a8cf9e':'#d19a82'};
+  if(p.streak>=3) return {text:`${dir} ${p.streak}wk — Early trend`,color:p.dir==='bull'?'#d8e8d0':'#e8d9cc'};
+  return {text:`${dir} ${p.streak}wk — Too short`,color:'#c9a35f'};
 }
 
 // POSITION ACCELERATION: second derivative — is buying/selling speeding up or slowing down?
@@ -1268,10 +1333,10 @@ function calcAcceleration(rows){
 function accelLabel(a){
   if(!a) return {text:'N/A',color:var_muted};
   const dir=a.recentWoW>=0?'Buying':'Selling';
-  if(a.accel>0&&a.recentWoW>0) return {text:`↗ ${dir} ACCELERATING`,color:'#22c55e'};
-  if(a.accel<0&&a.recentWoW>0) return {text:`↘ ${dir} Decelerating`,color:'#fbbf24'};
-  if(a.accel<0&&a.recentWoW<0) return {text:`↘ ${dir} ACCELERATING`,color:'#ef4444'};
-  if(a.accel>0&&a.recentWoW<0) return {text:`↗ ${dir} Decelerating`,color:'#fbbf24'};
+  if(a.accel>0&&a.recentWoW>0) return {text:`↗ ${dir} ACCELERATING`,color:'#6f9e5c'};
+  if(a.accel<0&&a.recentWoW>0) return {text:`↘ ${dir} Decelerating`,color:'#c9a35f'};
+  if(a.accel<0&&a.recentWoW<0) return {text:`↘ ${dir} ACCELERATING`,color:'#c0674a'};
+  if(a.accel>0&&a.recentWoW<0) return {text:`↗ ${dir} Decelerating`,color:'#c9a35f'};
   return {text:'→ Flat',color:var_muted};
 }
 
@@ -1402,18 +1467,18 @@ function renderMatrixPage(){
           <div style="font-family:var(--mono);font-size:9px;color:${itsLbl.color};margin-top:2px;">${itsLbl.text} · ITS ${its}</div>
         </div>
         <div style="text-align:right;">
-          <div class="csc-conf" style="color:${conf?conf.confidence>=70?'#22c55e':conf.confidence>=50?'#f59e0b':'#ef4444':'var(--muted)'}">${conf?conf.confidence+'%':'—'}</div>
+          <div class="csc-conf" style="color:${conf?conf.confidence>=70?'#6f9e5c':conf.confidence>=50?'#c9a35f':'#c0674a':'var(--muted)'}">${conf?conf.confidence+'%':'—'}</div>
           <div class="csc-prob" style="color:var(--purple);">~${conf?conf.probability+'%':'—'} prob 2-6W</div>
         </div>
       </div>
       <div class="csc-stats">
-        <div class="csc-stat"><div class="csc-stat-label">Z-Score</div><div class="csc-stat-val" style="color:${z?Math.abs(z.z)>=2?'#ef4444':Math.abs(z.z)>=1.5?'#f59e0b':'#86efac':'var(--muted)'}">${z?z.z+'σ':'—'}</div></div>
-        <div class="csc-stat"><div class="csc-stat-label">Net/OI</div><div class="csc-stat-val" style="color:${netPct!==null?Math.abs(netPct)>=30?'#ef4444':Math.abs(netPct)>=15?'#f59e0b':'#86efac':'var(--muted)'}">${netPct!==null?netPct+'%':'—'}</div></div>
-        <div class="csc-stat"><div class="csc-stat-label">Streak</div><div class="csc-stat-val" style="color:${persist.dir==='bull'?'#22c55e':persist.dir==='bear'?'#ef4444':'var(--muted)'}">${persist.streak}wk</div></div>
+        <div class="csc-stat"><div class="csc-stat-label">Z-Score</div><div class="csc-stat-val" style="color:${z?Math.abs(z.z)>=2?'#c0674a':Math.abs(z.z)>=1.5?'#c9a35f':'#a8cf9e':'var(--muted)'}">${z?z.z+'σ':'—'}</div></div>
+        <div class="csc-stat"><div class="csc-stat-label">Net/OI</div><div class="csc-stat-val" style="color:${netPct!==null?Math.abs(netPct)>=30?'#c0674a':Math.abs(netPct)>=15?'#c9a35f':'#a8cf9e':'var(--muted)'}">${netPct!==null?netPct+'%':'—'}</div></div>
+        <div class="csc-stat"><div class="csc-stat-label">Streak</div><div class="csc-stat-val" style="color:${persist.dir==='bull'?'#6f9e5c':persist.dir==='bear'?'#c0674a':'var(--muted)'}">${persist.streak}wk</div></div>
       </div>
       <div style="font-family:var(--mono);font-size:9px;margin-top:6px;color:${persLbl.color}">${persLbl.text}</div>
       <div style="font-family:var(--mono);font-size:9px;margin-top:3px;color:${accelLbl.color}">${accelLbl.text}</div>
-      ${conf?`<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:3px;">${conf.checks.map(c=>`<span style="font-family:var(--mono);font-size:8px;background:${c.pass?'rgba(34,197,94,.12)':'rgba(239,68,68,.08)'};color:${c.pass?'#86efac':'#fca5a5'};padding:1px 5px;border-radius:3px;">${c.pass?'✓':'✗'} ${c.label}</span>`).join('')}</div>`:''}
+      ${conf?`<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:3px;">${conf.checks.map(c=>`<span style="font-family:var(--mono);font-size:8px;background:${c.pass?'rgba(111,158,92,.12)':'rgba(192,103,74,.08)'};color:${c.pass?'#a8cf9e':'#d19a82'};padding:1px 5px;border-radius:3px;">${c.pass?'✓':'✗'} ${c.label}</span>`).join('')}</div>`:''}
     </div>`;
   });
 
@@ -1430,25 +1495,25 @@ function renderMatrixPage(){
     const accelLbl=accelLabel(accel);
     const netPct=calcNetPctOI(rows);
     const conf=calcConfidence(rows,true,id);
-    html+=`<div class="currency-stat-card" style="border-color:rgba(251,191,36,.3)">
+    html+=`<div class="currency-stat-card" style="border-color:rgba(201,163,95,.3)">
       <div class="csc-header">
         <div>
           <div class="csc-name" style="color:var(--gold)">${id}</div>
           <div style="font-family:var(--mono);font-size:9px;color:${itsLbl.color};margin-top:2px;">${itsLbl.text} · ITS ${its}</div>
         </div>
         <div style="text-align:right;">
-          <div class="csc-conf" style="color:${conf?conf.confidence>=70?'#22c55e':conf.confidence>=50?'#f59e0b':'#ef4444':'var(--muted)'}">${conf?conf.confidence+'%':'—'}</div>
+          <div class="csc-conf" style="color:${conf?conf.confidence>=70?'#6f9e5c':conf.confidence>=50?'#c9a35f':'#c0674a':'var(--muted)'}">${conf?conf.confidence+'%':'—'}</div>
           <div class="csc-prob" style="color:var(--purple);">~${conf?conf.probability+'%':'—'} prob 2-6W</div>
         </div>
       </div>
       <div class="csc-stats">
-        <div class="csc-stat"><div class="csc-stat-label">Z-Score</div><div class="csc-stat-val" style="color:${z?Math.abs(z.z)>=2?'#ef4444':Math.abs(z.z)>=1.5?'#f59e0b':'#86efac':'var(--muted)'}">${z?z.z+'σ':'—'}</div></div>
+        <div class="csc-stat"><div class="csc-stat-label">Z-Score</div><div class="csc-stat-val" style="color:${z?Math.abs(z.z)>=2?'#c0674a':Math.abs(z.z)>=1.5?'#c9a35f':'#a8cf9e':'var(--muted)'}">${z?z.z+'σ':'—'}</div></div>
         <div class="csc-stat"><div class="csc-stat-label">Net/OI</div><div class="csc-stat-val">${netPct!==null?netPct+'%':'—'}</div></div>
-        <div class="csc-stat"><div class="csc-stat-label">Streak</div><div class="csc-stat-val" style="color:${persist.dir==='bull'?'#22c55e':persist.dir==='bear'?'#ef4444':'var(--muted)'}">${persist.streak}wk</div></div>
+        <div class="csc-stat"><div class="csc-stat-label">Streak</div><div class="csc-stat-val" style="color:${persist.dir==='bull'?'#6f9e5c':persist.dir==='bear'?'#c0674a':'var(--muted)'}">${persist.streak}wk</div></div>
       </div>
       <div style="font-family:var(--mono);font-size:9px;margin-top:6px;color:${persLbl.color}">${persLbl.text}</div>
       <div style="font-family:var(--mono);font-size:9px;margin-top:3px;color:${accelLbl.color}">${accelLbl.text}</div>
-      ${conf?`<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:3px;">${conf.checks.map(c=>`<span style="font-family:var(--mono);font-size:8px;background:${c.pass?'rgba(34,197,94,.12)':'rgba(239,68,68,.08)'};color:${c.pass?'#86efac':'#fca5a5'};padding:1px 5px;border-radius:3px;">${c.pass?'✓':'✗'} ${c.label}</span>`).join('')}</div>`:''}
+      ${conf?`<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:3px;">${conf.checks.map(c=>`<span style="font-family:var(--mono);font-size:8px;background:${c.pass?'rgba(111,158,92,.12)':'rgba(192,103,74,.08)'};color:${c.pass?'#a8cf9e':'#d19a82'};padding:1px 5px;border-radius:3px;">${c.pass?'✓':'✗'} ${c.label}</span>`).join('')}</div>`:''}
     </div>`;
   });
 
@@ -1472,18 +1537,18 @@ function calcCommIndex(rows){
 }
 
 function cotIndexColor(idx){
-  if(idx>=80) return '#22c55e';
-  if(idx>=60) return '#86efac';
-  if(idx>=40) return '#f59e0b';
-  if(idx>=20) return '#fca5a5';
-  return '#ef4444';
+  if(idx>=80) return '#6f9e5c';
+  if(idx>=60) return '#a8cf9e';
+  if(idx>=40) return '#c9a35f';
+  if(idx>=20) return '#d19a82';
+  return '#c0674a';
 }
 function cotIndexZone(idx){
-  if(idx>=80) return {label:'🔥 Extreme Bullish (80–100)',color:'#22c55e'};
-  if(idx>=60) return {label:'📈 Bullish Zone (60–80)',color:'#86efac'};
-  if(idx>=40) return {label:'⚖️ Neutral Zone (40–60)',color:'#f59e0b'};
-  if(idx>=20) return {label:'📉 Bearish Zone (20–40)',color:'#fca5a5'};
-  return {label:'🥶 Extreme Bearish (0–20)',color:'#ef4444'};
+  if(idx>=80) return {label:'🔥 Extreme Bullish (80–100)',color:'#6f9e5c'};
+  if(idx>=60) return {label:'📈 Bullish Zone (60–80)',color:'#a8cf9e'};
+  if(idx>=40) return {label:'⚖️ Neutral Zone (40–60)',color:'#c9a35f'};
+  if(idx>=20) return {label:'📉 Bearish Zone (20–40)',color:'#d19a82'};
+  return {label:'🥶 Extreme Bearish (0–20)',color:'#c0674a'};
 }
 
 // ─── FLOW CHANGES ──────────────────────────────────────────────────────────────
@@ -1726,11 +1791,11 @@ function calcITSFull(rows, isMetals, marketId){
 }
 
 function itsLabel(score){
-  if(score>=80) return {text:'Strong Bullish',cls:'sb',color:'#22c55e'};
-  if(score>=60) return {text:'Bullish',cls:'b',color:'#86efac'};
-  if(score>=40) return {text:'Neutral',cls:'n',color:'#f59e0b'};
-  if(score>=20) return {text:'Bearish',cls:'be',color:'#fca5a5'};
-  return {text:'Strong Bearish',cls:'sbr',color:'#ef4444'};
+  if(score>=80) return {text:'Strong Bullish',cls:'sb',color:'#6f9e5c'};
+  if(score>=60) return {text:'Bullish',cls:'b',color:'#a8cf9e'};
+  if(score>=40) return {text:'Neutral',cls:'n',color:'#c9a35f'};
+  if(score>=20) return {text:'Bearish',cls:'be',color:'#d19a82'};
+  return {text:'Strong Bearish',cls:'sbr',color:'#c0674a'};
 }
 
 // Legacy cotScore used for pair builder compatibility
@@ -1788,13 +1853,13 @@ function calcCOTM(rows, lookback=3){
 function cotmLabel(m){
   if(!m) return {text:'N/A',color:var_muted};
   const {momentum}=m;
-  if(momentum>=20) return {text:`+${momentum} 🔥 Surging`,color:'#22c55e'};
-  if(momentum>=10) return {text:`+${momentum} ↑ Rising`,color:'#86efac'};
-  if(momentum>=-10) return {text:`${momentum>=0?'+':''}${momentum} → Flat`,color:'#f59e0b'};
-  if(momentum>=-20) return {text:`${momentum} ↓ Fading`,color:'#fca5a5'};
-  return {text:`${momentum} 🥶 Collapsing`,color:'#ef4444'};
+  if(momentum>=20) return {text:`+${momentum} 🔥 Surging`,color:'#6f9e5c'};
+  if(momentum>=10) return {text:`+${momentum} ↑ Rising`,color:'#a8cf9e'};
+  if(momentum>=-10) return {text:`${momentum>=0?'+':''}${momentum} → Flat`,color:'#c9a35f'};
+  if(momentum>=-20) return {text:`${momentum} ↓ Fading`,color:'#d19a82'};
+  return {text:`${momentum} 🥶 Collapsing`,color:'#c0674a'};
 }
-const var_muted='#8892a4';
+const var_muted='#93a094';
 
 // ─── CROWDING RATIO: Net as % of Open Interest ─────────────────────────────────
 // Absolute positioning size relative to total market — more meaningful than raw contracts
@@ -1812,11 +1877,11 @@ function calcCrowdingRatio(rows){
 function crowdingLabel(ratio){
   const abs=Math.abs(ratio);
   const dir=ratio>=0?'Long':'Short';
-  if(abs>=40) return {text:`🚨 Extreme ${dir} (${abs.toFixed(1)}%) — Reversal risk HIGH`,color:'#ef4444'};
-  if(abs>=30) return {text:`⚠️ Crowded ${dir} (${abs.toFixed(1)}%) — Use caution, reduce size`,color:'#f59e0b'};
-  if(abs>=20) return {text:`📊 Elevated ${dir} (${abs.toFixed(1)}%) — Watch for fading`,color:'#fbbf24'};
-  if(abs>=10) return {text:`✅ Normal ${dir} (${abs.toFixed(1)}%) — Room to continue`,color:'#86efac'};
-  return {text:`💤 Light ${dir} positioning (${abs.toFixed(1)}%) — Early innings`,color:'#22c55e'};
+  if(abs>=40) return {text:`🚨 Extreme ${dir} (${abs.toFixed(1)}%) — Reversal risk HIGH`,color:'#c0674a'};
+  if(abs>=30) return {text:`⚠️ Crowded ${dir} (${abs.toFixed(1)}%) — Use caution, reduce size`,color:'#c9a35f'};
+  if(abs>=20) return {text:`📊 Elevated ${dir} (${abs.toFixed(1)}%) — Watch for fading`,color:'#c9a35f'};
+  if(abs>=10) return {text:`✅ Normal ${dir} (${abs.toFixed(1)}%) — Room to continue`,color:'#a8cf9e'};
+  return {text:`💤 Light ${dir} positioning (${abs.toFixed(1)}%) — Early innings`,color:'#6f9e5c'};
 }
 
 // ─── DISAGGREGATED HELPERS ────────────────────────────────────────────────────
@@ -1974,7 +2039,7 @@ function renderCards(){
     const nets=rows.map(r=>getNet(r));
     const ci=calcCotIndex(nets);
     const cotIdx=ci?ci.index:null;
-    const cotColor=cotIdx!==null?cotIndexColor(cotIdx):'#64748b';
+    const cotColor=cotIdx!==null?cotIndexColor(cotIdx):'#8ea38f';
     const isMetals=m.cat==='metals';
     const its=calcITS(rows,isMetals,m.id);
     const itsLbl=itsLabel(its);
@@ -1999,16 +2064,16 @@ function renderCards(){
         <span class="cot-idx-val" style="color:${itsLbl.color}">${its}</span>
       </div>
       <div class="momentum-mini">
-        <div class="mom-cell"><div class="mom-cell-label">4W</div><div class="mom-cell-val" style="color:${flow.w4>=0?'#22c55e':'#ef4444'}">${fmtChange(flow.w4)}</div></div>
-        <div class="mom-cell"><div class="mom-cell-label">8W</div><div class="mom-cell-val" style="color:${flow.w8>=0?'#22c55e':'#ef4444'}">${fmtChange(flow.w8)}</div></div>
-        <div class="mom-cell"><div class="mom-cell-label">12W</div><div class="mom-cell-val" style="color:${flow.w12>=0?'#22c55e':'#ef4444'}">${fmtChange(flow.w12)}</div></div>
+        <div class="mom-cell"><div class="mom-cell-label">4W</div><div class="mom-cell-val" style="color:${flow.w4>=0?'#6f9e5c':'#c0674a'}">${fmtChange(flow.w4)}</div></div>
+        <div class="mom-cell"><div class="mom-cell-label">8W</div><div class="mom-cell-val" style="color:${flow.w8>=0?'#6f9e5c':'#c0674a'}">${fmtChange(flow.w8)}</div></div>
+        <div class="mom-cell"><div class="mom-cell-label">12W</div><div class="mom-cell-val" style="color:${flow.w12>=0?'#6f9e5c':'#c0674a'}">${fmtChange(flow.w12)}</div></div>
       </div>`;
     // Add Williams mini indicator
     const wCard=calcWilliamsIndex(rows,26);
     const wLblCard=williamsLabel(wCard);
     const wBarColor=wCard?cotIndexColor(wCard.index):var_muted;
     card.innerHTML+=`<div class="will-mini">
-      <span class="will-mini-label" style="color:#22c55e">WIL</span>
+      <span class="will-mini-label" style="color:#6f9e5c">WIL</span>
       <div class="will-mini-bar"><div class="will-mini-fill" style="width:${wCard?wCard.index:50}%;background:${wBarColor}"></div></div>
       <span class="will-mini-val" style="color:${wLblCard.color}">${wCard?wCard.index:'—'}</span>
     </div>`;
@@ -2050,7 +2115,7 @@ function showDetail(id){
     const comps=Object.values(itsResult.components);
     const engineColor=isMetals?'var(--gold)':'var(--accent)';
     engineRows.innerHTML=comps.map(c=>{
-      const barColor=c.score>=60?'#22c55e':c.score<=40?'#ef4444':'#f59e0b';
+      const barColor=c.score>=60?'#6f9e5c':c.score<=40?'#c0674a':'#c9a35f';
       return `<div class="engine-row">
         <div class="engine-row-label">${c.label}</div>
         <div class="engine-row-stars">${c.stars}</div>
@@ -2075,7 +2140,7 @@ function showDetail(id){
   if(isMetals&&itsResult.divergenceVal!==undefined){
     commDivWrap.style.display='block';
     const div=itsResult.divergenceVal;
-    const divColor=div>=20?'#22c55e':div<=-20?'#ef4444':'#f59e0b';
+    const divColor=div>=20?'#6f9e5c':div<=-20?'#c0674a':'#c9a35f';
     document.getElementById('comm-div-val').textContent=`${div>=0?'+':''}${div.toFixed(0)} pts`;
     document.getElementById('comm-div-val').style.color=divColor;
     const commCiDisp=calcCommIndex(rows);
@@ -2093,7 +2158,7 @@ function showDetail(id){
 
   // Flow changes
   const flow=getFlowChanges(rows);
-  const fcColor=(v)=>v>=0?'#22c55e':'#ef4444';
+  const fcColor=(v)=>v>=0?'#6f9e5c':'#c0674a';
   document.getElementById('fc-wow').textContent=fmtChange(flow.wow);
   document.getElementById('fc-wow').style.color=fcColor(flow.wow);
   document.getElementById('fc-wow-pct').textContent=flow.wow>=0?'▲ Adding longs':'▼ Cutting longs';
@@ -2180,7 +2245,7 @@ function showDetail(id){
 
   // Spec vs Commercial detail
   document.getElementById('sc-spec-net').textContent=(net>=0?'+':'')+fmtFull(Math.round(net));
-  document.getElementById('sc-spec-net').style.color=net>=0?'#22c55e':'#ef4444';
+  document.getElementById('sc-spec-net').style.color=net>=0?'#6f9e5c':'#c0674a';
   if(ci){
     document.getElementById('sc-spec-bar').style.width=ci.index+'%';
     document.getElementById('sc-spec-bar').style.background=cotIndexColor(ci.index);
@@ -2188,7 +2253,7 @@ function showDetail(id){
     document.getElementById('sc-spec-idx').style.color=cotIndexColor(ci.index);
   }
   document.getElementById('sc-comm-net').textContent=(commNet>=0?'+':'')+fmtFull(Math.round(commNet));
-  document.getElementById('sc-comm-net').style.color=commNet>=0?'#22c55e':'#ef4444';
+  document.getElementById('sc-comm-net').style.color=commNet>=0?'#6f9e5c':'#c0674a';
   if(commCi){
     document.getElementById('sc-comm-bar').style.width=commCi.index+'%';
     document.getElementById('sc-comm-bar').style.background=cotIndexColor(commCi.index);
@@ -2221,7 +2286,7 @@ function showDetail(id){
   else if(!oiUp&&netUp){oiLabel='OI ↓ + Net Long ↑ → Weak Bullish';oiDesc='Falling OI with rising net longs = shorts covering, not fresh longs. Weaker signal.';}
   else{oiLabel='OI ↓ + Net Long ↓ → Weak Bearish';oiDesc='Falling OI with falling net longs = longs exiting, not new shorts. Late in move.';}
   document.getElementById('d-oi-trend').textContent=oiLabel;
-  document.getElementById('d-oi-trend').style.color=oiUp&&netUp?'#22c55e':oiUp&&!netUp?'#ef4444':'#f59e0b';
+  document.getElementById('d-oi-trend').style.color=oiUp&&netUp?'#6f9e5c':oiUp&&!netUp?'#c0674a':'#c9a35f';
   document.getElementById('d-oi-interp').textContent=oiDesc;
 
   document.getElementById('pb-long').style.width=longPct+'%';
@@ -2246,7 +2311,7 @@ function showDetail(id){
   const wColor2=wDet?cotIndexColor(wDet.index):var_muted;
 
   willEl.innerHTML=`
-  <div style="font-size:11px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;padding-bottom:8px;border-top:1px solid var(--border);padding-top:14px;display:flex;align-items:center;gap:8px;"><span style="width:6px;height:6px;border-radius:50%;background:#22c55e;display:inline-block;"></span> Williams Method Analysis (26-Week Commercial COT)</div>
+  <div style="font-size:11px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;padding-bottom:8px;border-top:1px solid var(--border);padding-top:14px;display:flex;align-items:center;gap:8px;"><span style="width:6px;height:6px;border-radius:50%;background:#6f9e5c;display:inline-block;"></span> Williams Method Analysis (26-Week Commercial COT)</div>
   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px;">
     <div style="background:var(--subtle);border-radius:8px;padding:12px;">
       <div style="font-family:var(--mono);font-size:8px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Williams Index (26W Comm)</div>
@@ -2265,9 +2330,9 @@ function showDetail(id){
     </div>
   </div>
   ${wDet?`<div style="background:var(--subtle);border-radius:8px;padding:12px;font-size:11px;color:var(--text);line-height:1.7;">
-    <strong style="color:#22c55e">Williams Method:</strong> Commercial net = ${fmt(wDet.current)} contracts. 26-week COT Index = ${wDet.index}/100.
-    ${wDet.signal==='bull'?`<span style="color:#22c55e;font-weight:600"> 🟢 EXTREME BULL — Commercials near most long in 26 weeks. Larry Williams would consider this a BUY signal.</span>`:
-      wDet.signal==='bear'?`<span style="color:#ef4444;font-weight:600"> 🔴 EXTREME BEAR — Commercials near most short in 26 weeks. Larry Williams would consider this a SELL signal.</span>`:
+    <strong style="color:#6f9e5c">Williams Method:</strong> Commercial net = ${fmt(wDet.current)} contracts. 26-week COT Index = ${wDet.index}/100.
+    ${wDet.signal==='bull'?`<span style="color:#6f9e5c;font-weight:600"> 🟢 EXTREME BULL — Commercials near most long in 26 weeks. Larry Williams would consider this a BUY signal.</span>`:
+      wDet.signal==='bear'?`<span style="color:#c0674a;font-weight:600"> 🔴 EXTREME BEAR — Commercials near most short in 26 weeks. Larry Williams would consider this a SELL signal.</span>`:
       wDet.index>=70?` Commercials leaning bullish (${wDet.index}/100) but not at extreme threshold (≥90). Williams would <strong>wait</strong> for ≥90 to act.`:
       wDet.index<=30?` Commercials leaning bearish (${wDet.index}/100) but not at extreme threshold (≤10). Williams would <strong>wait</strong> for ≤10 to act.`:
       ` Commercials in neutral zone (${wDet.index}/100). Williams method has no signal here — stand aside until extreme (≤10 or ≥90).`}
@@ -2291,17 +2356,17 @@ function showDetail(id){
   const netPct=calcNetPctOI(rows);
   const conf=calcConfidence(rows,isMetals,m.id);
 
-  const zColor=z?Math.abs(z.z)>=2.5?'#ef4444':Math.abs(z.z)>=1.5?'#f59e0b':'#86efac':var_muted;
-  const netPctColor=netPct!==null?Math.abs(netPct)>=35?'#ef4444':Math.abs(netPct)>=20?'#f59e0b':'#86efac':var_muted;
+  const zColor=z?Math.abs(z.z)>=2.5?'#c0674a':Math.abs(z.z)>=1.5?'#c9a35f':'#a8cf9e':var_muted;
+  const netPctColor=netPct!==null?Math.abs(netPct)>=35?'#c0674a':Math.abs(netPct)>=20?'#c9a35f':'#a8cf9e':var_muted;
 
   instEl.innerHTML=`
-  <div style="font-size:11px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;"><span style="width:6px;height:6px;border-radius:50%;background:#38bdf8;display:inline-block;"></span> Institutional Analytics</div>
+  <div style="font-size:11px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;"><span style="width:6px;height:6px;border-radius:50%;background:#6fa89a;display:inline-block;"></span> Institutional Analytics</div>
 
   ${conf?`<div class="conf-wrap">
     <div class="conf-title">🎯 Confidence Score & Probability</div>
     <div style="display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;">
       <div>
-        <div class="conf-score-big" style="color:${conf.confidence>=70?'#22c55e':conf.confidence>=50?'#f59e0b':'#ef4444'}">${conf.confidence}%</div>
+        <div class="conf-score-big" style="color:${conf.confidence>=70?'#6f9e5c':conf.confidence>=50?'#c9a35f':'#c0674a'}">${conf.confidence}%</div>
         <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:2px;">CONFIDENCE</div>
       </div>
       <div>
@@ -2310,7 +2375,7 @@ function showDetail(id){
       </div>
       <div style="flex:1;min-width:160px;">
         <div class="conf-checks">
-          ${conf.checks.map(c=>`<div class="conf-check"><span class="conf-check-icon">${c.pass?'✅':'❌'}</span><span style="color:${c.pass?'#86efac':'#fca5a5'}">${c.label}</span><span style="color:var(--muted);margin-left:auto;font-size:8px;">${c.detail} · ${c.weight}%</span></div>`).join('')}
+          ${conf.checks.map(c=>`<div class="conf-check"><span class="conf-check-icon">${c.pass?'✅':'❌'}</span><span style="color:${c.pass?'#a8cf9e':'#d19a82'}">${c.label}</span><span style="color:var(--muted);margin-left:auto;font-size:8px;">${c.detail} · ${c.weight}%</span></div>`).join('')}
         </div>
       </div>
     </div>
@@ -2328,9 +2393,9 @@ function showDetail(id){
     </div>
     <div class="persist-wrap">
       <div class="persist-label">🔁 Flow Persistence</div>
-      <div class="persist-streak" style="color:${persist.dir==='bull'?'#22c55e':persist.dir==='bear'?'#ef4444':var_muted}">${persist.streak} <span style="font-size:11px;font-weight:400;">consecutive weeks</span></div>
+      <div class="persist-streak" style="color:${persist.dir==='bull'?'#6f9e5c':persist.dir==='bear'?'#c0674a':var_muted}">${persist.streak} <span style="font-size:11px;font-weight:400;">consecutive weeks</span></div>
       <div class="persist-desc" style="color:${persLbl.color}">${persLbl.text}</div>
-      ${persist.streak>=5?`<div style="font-family:var(--mono);font-size:8px;color:#a78bfa;margin-top:3px;">Institutional commitment confirmed</div>`:''}
+      ${persist.streak>=5?`<div style="font-family:var(--mono);font-size:8px;color:#9a8fae;margin-top:3px;">Institutional commitment confirmed</div>`:''}
     </div>
   </div>
 
@@ -2457,7 +2522,7 @@ function buildInsights(m,r,net,flow,sig,commNet,ci,pct,its,itsLbl,isMetals){
   }
 
   if(conf){
-    const probColor=conf.probability>=65?'#22c55e':conf.probability>=50?'#f59e0b':'#ef4444';
+    const probColor=conf.probability>=65?'#6f9e5c':conf.probability>=50?'#c9a35f':'#c0674a';
     const passCount=conf.checks.filter(c=>c.pass).length;
     insights.push({icon:'🎯',cls:conf.confidence>=70?'special':'',text:`<strong>Institutional Confidence Score: ${conf.confidence}% — Probability ~${conf.probability}% (2–6 Week ${conf.isBull?'Bull':'Bear'} Continuation)</strong><br>${passCount}/${conf.checks.length} institutional filters confirmed. ${conf.confidence>=70?'<span class="bull-text">High-conviction setup — multiple institutional factors aligned.</span>':conf.confidence>=50?'Moderate setup — watch for remaining filters to confirm.':'<span class="warn-text">Low conviction — insufficient institutional factor alignment. Stay flat.</span>'}`});
   }
@@ -2522,9 +2587,9 @@ function renderDisaggPage(){
     else if(amBear){ signal=`<span class="disagg-am-bear">Asset Managers reducing/shorting</span> (index: ${amIdx.index}/100). Real money distributing — bearish bias.`; }
     else{ signal='No strong positioning signal from either Asset Managers or Leveraged Funds. Wait for one group to reach an extreme (>60 or <40 index).'; }
 
-    const amColor=amIdx?(amIdx.index>=60?'#22c55e':amIdx.index<=40?'#ef4444':'#f59e0b'):'#64748b';
-    const lfColor=lfIdx?(lfIdx.index>=60?'#c084fc':lfIdx.index<=40?'#fbbf24':'#64748b'):'#64748b';
-    const diColor=diIdx?(diIdx.index>=60?'#38bdf8':diIdx.index<=40?'#f87171':'#64748b'):'#64748b';
+    const amColor=amIdx?(amIdx.index>=60?'#6f9e5c':amIdx.index<=40?'#c0674a':'#c9a35f'):'#8ea38f';
+    const lfColor=lfIdx?(lfIdx.index>=60?'#9a8fae':lfIdx.index<=40?'#c9a35f':'#8ea38f'):'#8ea38f';
+    const diColor=diIdx?(diIdx.index>=60?'#6fa89a':diIdx.index<=40?'#c17a54':'#8ea38f'):'#8ea38f';
 
     return `<div class="disagg-card ${sigCls}">
       <div class="disagg-header">
@@ -2539,14 +2604,14 @@ function renderDisaggPage(){
           <div class="disagg-group-label" style="color:var(--accent)">🏛 Asset Managers</div>
           <div class="disagg-group-net" style="color:${amColor}">${am.net>=0?'+':''}${fmt(am.net)}</div>
           <div class="disagg-group-idx">Index: ${amIdx?amIdx.index:'—'}/100</div>
-          <div class="disagg-group-idx" style="color:${Math.abs(parseFloat(amCrowd))>=30?'#ef4444':'var(--muted)'}">Crowd: ${amCrowd}% OI</div>
+          <div class="disagg-group-idx" style="color:${Math.abs(parseFloat(amCrowd))>=30?'#c0674a':'var(--muted)'}">Crowd: ${amCrowd}% OI</div>
           <div class="disagg-idx-bar"><div class="disagg-idx-fill" style="width:${amIdx?amIdx.index:50}%;background:${amColor}"></div></div>
         </div>
         <div class="disagg-group">
           <div class="disagg-group-label" style="color:var(--purple)">⚡ Leveraged Funds</div>
           <div class="disagg-group-net" style="color:${lfColor}">${lf.net>=0?'+':''}${fmt(lf.net)}</div>
           <div class="disagg-group-idx">Index: ${lfIdx?lfIdx.index:'—'}/100</div>
-          <div class="disagg-group-idx" style="color:${Math.abs(parseFloat(lfCrowd))>=30?'#ef4444':'var(--muted)'}">Crowd: ${lfCrowd}% OI</div>
+          <div class="disagg-group-idx" style="color:${Math.abs(parseFloat(lfCrowd))>=30?'#c0674a':'var(--muted)'}">Crowd: ${lfCrowd}% OI</div>
           <div class="disagg-idx-bar"><div class="disagg-idx-fill" style="width:${lfIdx?lfIdx.index:50}%;background:${lfColor}"></div></div>
         </div>
         <div class="disagg-group">
@@ -2574,26 +2639,29 @@ function drawChart(rows){
   const display=rows.slice(0,12);
   const nets=[...display].reverse().map(r=>getNet(r));
   if(nets.length<2) return;
+  const cs=getComputedStyle(document.body);
+  const borderColor=cs.getPropertyValue('--border').trim()||'#293b30';
+  const mutedColor=cs.getPropertyValue('--muted').trim()||'#8ea38f';
   const maxAbs=Math.max(...nets.map(Math.abs),1);
   const pad={t:8,b:20,l:8,r:8};
   const pw=W-pad.l-pad.r, ph=H-pad.t-pad.b;
   const cx=i=>pad.l+(i/(nets.length-1))*pw;
   const cy=v=>pad.t+ph/2-(v/maxAbs)*(ph/2-4);
   ctx.beginPath(); ctx.moveTo(pad.l,pad.t+ph/2); ctx.lineTo(pad.l+pw,pad.t+ph/2);
-  ctx.strokeStyle='#1f2a3c'; ctx.lineWidth=1; ctx.setLineDash([4,4]); ctx.stroke(); ctx.setLineDash([]);
+  ctx.strokeStyle=borderColor; ctx.lineWidth=1; ctx.setLineDash([4,4]); ctx.stroke(); ctx.setLineDash([]);
   const lastNet=nets[nets.length-1];
   const grad=ctx.createLinearGradient(0,0,0,H);
-  if(lastNet>=0){grad.addColorStop(0,'rgba(34,197,94,0.25)');grad.addColorStop(1,'rgba(34,197,94,0)');}
-  else{grad.addColorStop(0,'rgba(239,68,68,0)');grad.addColorStop(1,'rgba(239,68,68,0.25)');}
+  if(lastNet>=0){grad.addColorStop(0,'rgba(111,158,92,0.25)');grad.addColorStop(1,'rgba(111,158,92,0)');}
+  else{grad.addColorStop(0,'rgba(192,103,74,0)');grad.addColorStop(1,'rgba(192,103,74,0.25)');}
   ctx.beginPath(); ctx.moveTo(cx(0),cy(nets[0]));
   for(let i=1;i<nets.length;i++) ctx.lineTo(cx(i),cy(nets[i]));
   ctx.lineTo(cx(nets.length-1),pad.t+ph/2); ctx.lineTo(cx(0),pad.t+ph/2);
   ctx.closePath(); ctx.fillStyle=grad; ctx.fill();
   ctx.beginPath(); ctx.moveTo(cx(0),cy(nets[0]));
   for(let i=1;i<nets.length;i++) ctx.lineTo(cx(i),cy(nets[i]));
-  ctx.strokeStyle=lastNet>=0?'#22c55e':'#ef4444'; ctx.lineWidth=2; ctx.stroke();
-  nets.forEach((v,i)=>{ctx.beginPath();ctx.arc(cx(i),cy(v),3,0,Math.PI*2);ctx.fillStyle=v>=0?'#22c55e':'#ef4444';ctx.fill();});
-  ctx.fillStyle='#64748b'; ctx.font='9px Space Mono,monospace';
+  ctx.strokeStyle=lastNet>=0?'#6f9e5c':'#c0674a'; ctx.lineWidth=2; ctx.stroke();
+  nets.forEach((v,i)=>{ctx.beginPath();ctx.arc(cx(i),cy(v),3,0,Math.PI*2);ctx.fillStyle=v>=0?'#6f9e5c':'#c0674a';ctx.fill();});
+  ctx.fillStyle=mutedColor; ctx.font='9px Space Mono,monospace';
   ctx.textAlign='left'; ctx.fillText('← older',pad.l,H-4);
   ctx.textAlign='right'; ctx.fillText('latest →',pad.l+pw,H-4);
 }
@@ -2613,10 +2681,10 @@ function renderStrengthPage(){
   const maxAbs=Math.max(...scores.map(s=>Math.abs(s.score)),1);
   const listEl=document.getElementById('strength-list');
   listEl.innerHTML=scores.map((s,i)=>{
-    const color=s.score>20?'#22c55e':s.score<-20?'#ef4444':'#f59e0b';
+    const color=s.score>20?'#6f9e5c':s.score<-20?'#c0674a':'#c9a35f';
     const barPct=Math.min(100,(Math.abs(s.score)/maxAbs)*100);
     const flowStr=s.rows?fmtChange(s.flow.w4):'derv';
-    const flowColor=s.flow.w4>=0?'#22c55e':'#ef4444';
+    const flowColor=s.flow.w4>=0?'#6f9e5c':'#c0674a';
     return `<div class="strength-row">
       <span class="strength-rank">#${i+1}</span>
       <span class="strength-currency" style="color:${color}">${s.id}</span>
@@ -2635,7 +2703,7 @@ function renderStrengthPage(){
       if(strong.id===weak.id||count>=6) return;
       const diff=strong.score-weak.score;
       if(Math.abs(diff)<20) return;
-      const color=strong.score>0?'#22c55e':'#ef4444';
+      const color=strong.score>0?'#6f9e5c':'#c0674a';
       const verdict=diff>100?'🔥 Very Strong':diff>60?'✅ Strong':'👍 Moderate';
       pairHtml+=`<div style="background:var(--subtle);border-radius:8px;padding:10px 12px;margin-bottom:8px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
@@ -2686,7 +2754,7 @@ function renderPairsPage(){
     const cls=abs>40?(isLong?'strong-buy':'strong-sell'):abs>20?(isLong?'weak-buy':'weak-sell'):'neutral-pair';
     const pillLabel=abs>40?(isLong?'STRONG BUY':'STRONG SELL'):abs>20?(isLong?'BUY':'SELL'):'NEUTRAL';
     const barPct=Math.min(100,(abs/topAbs)*100);
-    const barColor=abs>80?(isLong?'#22c55e':'#ef4444'):abs>40?(isLong?'#86efac':'#fca5a5'):'#f59e0b';
+    const barColor=abs>80?(isLong?'#6f9e5c':'#c0674a'):abs>40?(isLong?'#a8cf9e':'#d19a82'):'#c9a35f';
     const isTop=i<3;
     const baseF4=p.baseFlow.w4||0, quoteF4=p.quoteFlow.w4||0;
     const baseF8=p.baseFlow.w8||0, quoteF8=p.quoteFlow.w8||0;
@@ -2697,7 +2765,7 @@ function renderPairsPage(){
     const wAgree=williamsPairAgreement(p.pairScore,p.williamsPairScore);
     const wBaseColor=p.baseWilliams!=null?cotIndexColor(p.baseWilliams):var_muted;
     const wQuoteColor=p.quoteWilliams!=null?cotIndexColor(p.quoteWilliams):var_muted;
-    const wDiffColor=p.williamsPairScore==null?var_muted:(p.williamsPairScore>0?'#22c55e':p.williamsPairScore<0?'#ef4444':'#f59e0b');
+    const wDiffColor=p.williamsPairScore==null?var_muted:(p.williamsPairScore>0?'#6f9e5c':p.williamsPairScore<0?'#c0674a':'#c9a35f');
 
     return `<div class="pair-card ${cls} ${isTop?'top-pick':''}">
       ${isTop?`<span class="top-pick-badge">#${i+1} PICK</span>`:''}
@@ -2709,14 +2777,14 @@ function renderPairsPage(){
       <div class="pair-breakdown">${p.base}: ITS ${p.baseScore} | ${p.quote}: ITS ${p.quoteScore}</div>
       <div class="pair-bar-track"><div class="pair-bar-fill" style="width:${barPct}%;background:${barColor}"></div></div>
       <div class="pair-flow-row">
-        <div class="pair-flow-cell"><div class="pair-flow-label">4W FLOW DIFF</div><div class="pair-flow-val" style="color:${flowDiff4>=0?'#22c55e':'#ef4444'}">${fmtChange(flowDiff4)}</div></div>
-        <div class="pair-flow-cell"><div class="pair-flow-label">8W FLOW DIFF</div><div class="pair-flow-val" style="color:${flowDiff8>=0?'#22c55e':'#ef4444'}">${fmtChange(flowDiff8)}</div></div>
-        <div class="pair-flow-cell"><div class="pair-flow-label">CONVICTION</div><div class="pair-flow-val" style="color:${flowDiff4*flowDiff8>0?'#22c55e':'#f59e0b'}">${flowDiff4*flowDiff8>0?'✅ ALIGNED':'⚠ MIXED'}</div></div>
+        <div class="pair-flow-cell"><div class="pair-flow-label">4W FLOW DIFF</div><div class="pair-flow-val" style="color:${flowDiff4>=0?'#6f9e5c':'#c0674a'}">${fmtChange(flowDiff4)}</div></div>
+        <div class="pair-flow-cell"><div class="pair-flow-label">8W FLOW DIFF</div><div class="pair-flow-val" style="color:${flowDiff8>=0?'#6f9e5c':'#c0674a'}">${fmtChange(flowDiff8)}</div></div>
+        <div class="pair-flow-cell"><div class="pair-flow-label">CONVICTION</div><div class="pair-flow-val" style="color:${flowDiff4*flowDiff8>0?'#6f9e5c':'#c9a35f'}">${flowDiff4*flowDiff8>0?'✅ ALIGNED':'⚠ MIXED'}</div></div>
       </div>
       <div class="pair-flow-row" style="border-top:1px solid var(--border);margin-top:6px;padding-top:6px;">
-        <div class="pair-flow-cell"><div class="pair-flow-label" style="color:#22c55e">WIL ${p.base}</div><div class="pair-flow-val" style="color:${wBaseColor}">${p.baseWilliams??'—'}</div></div>
-        <div class="pair-flow-cell"><div class="pair-flow-label" style="color:#22c55e">WIL ${p.quote}</div><div class="pair-flow-val" style="color:${wQuoteColor}">${p.quoteWilliams??'—'}</div></div>
-        <div class="pair-flow-cell"><div class="pair-flow-label" style="color:#22c55e">WIL DIFF</div><div class="pair-flow-val" style="color:${wDiffColor}">${p.williamsPairScore!=null?(p.williamsPairScore>0?'+':'')+p.williamsPairScore:'—'}</div></div>
+        <div class="pair-flow-cell"><div class="pair-flow-label" style="color:#6f9e5c">WIL ${p.base}</div><div class="pair-flow-val" style="color:${wBaseColor}">${p.baseWilliams??'—'}</div></div>
+        <div class="pair-flow-cell"><div class="pair-flow-label" style="color:#6f9e5c">WIL ${p.quote}</div><div class="pair-flow-val" style="color:${wQuoteColor}">${p.quoteWilliams??'—'}</div></div>
+        <div class="pair-flow-cell"><div class="pair-flow-label" style="color:#6f9e5c">WIL DIFF</div><div class="pair-flow-val" style="color:${wDiffColor}">${p.williamsPairScore!=null?(p.williamsPairScore>0?'+':'')+p.williamsPairScore:'—'}</div></div>
       </div>
       <div style="text-align:center;margin-top:4px;font-family:var(--mono);font-size:9px;color:${wAgree.color}">ITS vs Williams: ${wAgree.text}</div>
     </div>`;
@@ -2791,7 +2859,7 @@ async function analyzeCustomPair(){
   }
 
   btn.disabled=true; btn.textContent='Analyzing…';
-  resultEl.innerHTML=`<div class="custom-pair-error" style="color:var(--cyan);background:rgba(56,189,248,.08);border-color:rgba(56,189,248,.25)">⏳ Crunching ${base}/${quote} COT data…</div>`;
+  resultEl.innerHTML=`<div class="custom-pair-error" style="color:var(--cyan);background:rgba(111,168,154,.08);border-color:rgba(111,168,154,.25)">⏳ Crunching ${base}/${quote} COT data…</div>`;
 
   // tiny delay so the button state visibly updates before sync compute
   await new Promise(r=>setTimeout(r,120));
@@ -2810,13 +2878,13 @@ function legCard(id,its,lbl,flow,persist,z,crowd,conf,williamsIdx){
     <div class="cpr-leg-name">${id} <span style="font-size:10px;color:var(--muted);font-weight:400">${CCY_NAMES[id]||''}</span></div>
     <div class="cpr-leg-label" style="background:rgba(255,255,255,.06);color:${lbl.color}">${lbl.text}</div>
     <div class="cpr-leg-its" style="color:${lbl.color}">${its}</div>
-    <div class="cpr-leg-stat-row"><span>4W Flow</span><span class="cpr-leg-stat-val" style="color:${(flow.w4||0)>=0?'#22c55e':'#ef4444'}">${fmtChange(flow.w4||0)}</span></div>
-    <div class="cpr-leg-stat-row"><span>8W Flow</span><span class="cpr-leg-stat-val" style="color:${(flow.w8||0)>=0?'#22c55e':'#ef4444'}">${fmtChange(flow.w8||0)}</span></div>
+    <div class="cpr-leg-stat-row"><span>4W Flow</span><span class="cpr-leg-stat-val" style="color:${(flow.w4||0)>=0?'#6f9e5c':'#c0674a'}">${fmtChange(flow.w4||0)}</span></div>
+    <div class="cpr-leg-stat-row"><span>8W Flow</span><span class="cpr-leg-stat-val" style="color:${(flow.w8||0)>=0?'#6f9e5c':'#c0674a'}">${fmtChange(flow.w8||0)}</span></div>
     ${persist?`<div class="cpr-leg-stat-row"><span>Streak</span><span class="cpr-leg-stat-val" style="color:${persistLbl.color}">${persist.dir==='none'?'—':persist.streak+'wk '+(persist.dir==='bull'?'▲':'▼')}</span></div>`:''}
-    ${z?`<div class="cpr-leg-stat-row"><span>Z-Score</span><span class="cpr-leg-stat-val" style="color:${Math.abs(z.z)>=2?'#ef4444':Math.abs(z.z)>=1.5?'#f59e0b':'#86efac'}">${z.z}σ</span></div>`:''}
+    ${z?`<div class="cpr-leg-stat-row"><span>Z-Score</span><span class="cpr-leg-stat-val" style="color:${Math.abs(z.z)>=2?'#c0674a':Math.abs(z.z)>=1.5?'#c9a35f':'#a8cf9e'}">${z.z}σ</span></div>`:''}
     ${crowd?`<div class="cpr-leg-stat-row"><span>Net/OI</span><span class="cpr-leg-stat-val">${crowd.ratio}%</span></div>`:''}
     <div class="cpr-leg-stat-row"><span>Williams (26W)</span><span class="cpr-leg-stat-val" style="color:${wColor}">${williamsIdx??'—'}</span></div>
-    ${conf?`<div class="cpr-leg-stat-row"><span>Confidence</span><span class="cpr-leg-stat-val" style="color:${conf.confidence>=70?'#22c55e':conf.confidence>=50?'#f59e0b':'#ef4444'}">${conf.confidence}%</span></div>`:''}
+    ${conf?`<div class="cpr-leg-stat-row"><span>Confidence</span><span class="cpr-leg-stat-val" style="color:${conf.confidence>=70?'#6f9e5c':conf.confidence>=50?'#c9a35f':'#c0674a'}">${conf.confidence}%</span></div>`:''}
   </div>`;
 }
 
@@ -2832,7 +2900,7 @@ function renderCustomPairReport(base,quote){
   const isLong=pairScore>0;
   const cls=abs>80?(isLong?'strong-buy':'strong-sell'):abs>40?(isLong?'weak-buy':'weak-sell'):'neutral-pair';
   const pillLabel=abs>80?(isLong?'STRONG BUY':'STRONG SELL'):abs>40?(isLong?'BUY':'SELL'):'NEUTRAL';
-  const pillColor=abs>80?(isLong?'#22c55e':'#ef4444'):abs>40?(isLong?'#86efac':'#fca5a5'):'#f59e0b';
+  const pillColor=abs>80?(isLong?'#6f9e5c':'#c0674a'):abs>40?(isLong?'#a8cf9e':'#d19a82'):'#c9a35f';
 
   const baseFlow=base==='USD'?{wow:0,w4:0,w8:0,w12:0}:getFlowChanges(allData[base]);
   const quoteFlow=quote==='USD'?{wow:0,w4:0,w8:0,w12:0}:getFlowChanges(allData[quote]);
@@ -2900,7 +2968,7 @@ function renderCustomPairReport(base,quote){
       </div>
       <div class="cpr-score-row">
         <div class="cpr-score-big" style="color:${pillColor}">${pairScore>0?'+':''}${pairScore}</div>
-        <div class="cpr-score-sub">Pair Score (${base} ITS − ${quote} ITS)<br>Checklist Confidence: <span style="color:${confPct>=70?'#22c55e':confPct>=50?'#f59e0b':'#ef4444'}">${confPct}%</span> (${passCount}/${checks.length})</div>
+        <div class="cpr-score-sub">Pair Score (${base} ITS − ${quote} ITS)<br>Checklist Confidence: <span style="color:${confPct>=70?'#6f9e5c':confPct>=50?'#c9a35f':'#c0674a'}">${confPct}%</span> (${passCount}/${checks.length})</div>
       </div>
       <div class="cpr-vs-row">
         ${legCard(base,baseITS,baseLbl,baseFlow,basePersist,baseZ,baseCrowd,baseConf,baseWilliams)}
@@ -2910,9 +2978,9 @@ function renderCustomPairReport(base,quote){
       <div class="cpr-section">
         <div class="cpr-section-title">📊 Relative Flow Differential</div>
         <div class="cpr-flow-grid">
-          <div class="cpr-flow-cell"><div class="cpr-flow-cell-label">4W Diff</div><div class="cpr-flow-cell-val" style="color:${flowDiff4>=0?'#22c55e':'#ef4444'}">${fmtChange(flowDiff4)}</div></div>
-          <div class="cpr-flow-cell"><div class="cpr-flow-cell-label">8W Diff</div><div class="cpr-flow-cell-val" style="color:${flowDiff8>=0?'#22c55e':'#ef4444'}">${fmtChange(flowDiff8)}</div></div>
-          <div class="cpr-flow-cell"><div class="cpr-flow-cell-label">12W Diff</div><div class="cpr-flow-cell-val" style="color:${flowDiff12>=0?'#22c55e':'#ef4444'}">${fmtChange(flowDiff12)}</div></div>
+          <div class="cpr-flow-cell"><div class="cpr-flow-cell-label">4W Diff</div><div class="cpr-flow-cell-val" style="color:${flowDiff4>=0?'#6f9e5c':'#c0674a'}">${fmtChange(flowDiff4)}</div></div>
+          <div class="cpr-flow-cell"><div class="cpr-flow-cell-label">8W Diff</div><div class="cpr-flow-cell-val" style="color:${flowDiff8>=0?'#6f9e5c':'#c0674a'}">${fmtChange(flowDiff8)}</div></div>
+          <div class="cpr-flow-cell"><div class="cpr-flow-cell-label">12W Diff</div><div class="cpr-flow-cell-val" style="color:${flowDiff12>=0?'#6f9e5c':'#c0674a'}">${fmtChange(flowDiff12)}</div></div>
         </div>
       </div>
       <div class="cpr-section">
@@ -2963,7 +3031,7 @@ function renderExtremesPage(){
           <span style="font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:3px;background:var(--subtle);color:${itsLbl.color}">ITS: ${its}</span>
         </div>
       </div>
-      <div class="percentile-bar"><div class="percentile-fill" style="width:${pct}%;background:${hPct>=90?'#ef4444':hPct>=60?'#f59e0b':'#22c55e'}"></div></div>
+      <div class="percentile-bar"><div class="percentile-fill" style="width:${pct}%;background:${hPct>=90?'#c0674a':hPct>=60?'#c9a35f':'#6f9e5c'}"></div></div>
       <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--muted);margin-bottom:8px;">
         <span>Min: ${fmt(min)}</span><span>Now: ${current>=0?'+':''}${fmt(current)}</span><span>Max: ${fmt(max)}</span>
       </div>
@@ -3019,24 +3087,24 @@ function renderDivergencePage(){
       <div class="flow-momentum-table">
         <div class="fmt-title">📊 Flow Momentum (Position Change)</div>
         <div class="fmt-row">
-          <div class="fmt-cell"><div class="fmt-cell-label">WoW</div><div class="fmt-cell-val" style="color:${recentWoW>=0?'#22c55e':'#ef4444'}">${fmtChange(recentWoW)}</div></div>
-          <div class="fmt-cell"><div class="fmt-cell-label">4-Week</div><div class="fmt-cell-val" style="color:${flow.w4>=0?'#22c55e':'#ef4444'}">${fmtChange(flow.w4)}</div></div>
-          <div class="fmt-cell"><div class="fmt-cell-label">8-Week</div><div class="fmt-cell-val" style="color:${flow.w8>=0?'#22c55e':'#ef4444'}">${fmtChange(flow.w8)}</div></div>
-          <div class="fmt-cell"><div class="fmt-cell-label">12-Week</div><div class="fmt-cell-val" style="color:${flow.w12>=0?'#22c55e':'#ef4444'}">${fmtChange(flow.w12)}</div></div>
+          <div class="fmt-cell"><div class="fmt-cell-label">WoW</div><div class="fmt-cell-val" style="color:${recentWoW>=0?'#6f9e5c':'#c0674a'}">${fmtChange(recentWoW)}</div></div>
+          <div class="fmt-cell"><div class="fmt-cell-label">4-Week</div><div class="fmt-cell-val" style="color:${flow.w4>=0?'#6f9e5c':'#c0674a'}">${fmtChange(flow.w4)}</div></div>
+          <div class="fmt-cell"><div class="fmt-cell-label">8-Week</div><div class="fmt-cell-val" style="color:${flow.w8>=0?'#6f9e5c':'#c0674a'}">${fmtChange(flow.w8)}</div></div>
+          <div class="fmt-cell"><div class="fmt-cell-label">12-Week</div><div class="fmt-cell-val" style="color:${flow.w12>=0?'#6f9e5c':'#c0674a'}">${fmtChange(flow.w12)}</div></div>
         </div>
       </div>
       <div class="diverg-rows">
-        <div class="diverg-row"><span class="diverg-row-label">Latest Net</span><span class="diverg-row-val" style="color:${nets[0]>=0?'#22c55e':'#ef4444'}">${nets[0]>=0?'+':''}${fmt(nets[0])}</span></div>
-        <div class="diverg-row"><span class="diverg-row-label">4 Weeks Prior</span><span class="diverg-row-val" style="color:${n4>=0?'#22c55e':'#ef4444'}">${n4>=0?'+':''}${fmt(n4)}</span></div>
-        <div class="diverg-row"><span class="diverg-row-label">8 Weeks Prior</span><span class="diverg-row-val" style="color:${n8>=0?'#22c55e':'#ef4444'}">${n8>=0?'+':''}${fmt(n8)}</span></div>
-        <div class="diverg-row"><span class="diverg-row-label">4W Trend</span><span class="diverg-row-val" style="color:${trend4>=0?'#22c55e':'#ef4444'}">${fmtChange(trend4)}</span></div>
+        <div class="diverg-row"><span class="diverg-row-label">Latest Net</span><span class="diverg-row-val" style="color:${nets[0]>=0?'#6f9e5c':'#c0674a'}">${nets[0]>=0?'+':''}${fmt(nets[0])}</span></div>
+        <div class="diverg-row"><span class="diverg-row-label">4 Weeks Prior</span><span class="diverg-row-val" style="color:${n4>=0?'#6f9e5c':'#c0674a'}">${n4>=0?'+':''}${fmt(n4)}</span></div>
+        <div class="diverg-row"><span class="diverg-row-label">8 Weeks Prior</span><span class="diverg-row-val" style="color:${n8>=0?'#6f9e5c':'#c0674a'}">${n8>=0?'+':''}${fmt(n8)}</span></div>
+        <div class="diverg-row"><span class="diverg-row-label">4W Trend</span><span class="diverg-row-val" style="color:${trend4>=0?'#6f9e5c':'#c0674a'}">${fmtChange(trend4)}</span></div>
       </div>
       <div class="diverg-desc">${desc}</div>
     </div>`;
   }).join('');
 }
 
-window.addEventListener('load',()=>{renderCustomPairChips();renderSignalLog();});
+window.addEventListener('load',()=>{initTheme();renderCustomPairChips();renderSignalLog();});
 window.addEventListener('resize',()=>{if(selectedId&&allData[selectedId]) drawChart(allData[selectedId]);});
 </script>
 </body>
