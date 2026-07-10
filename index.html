@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>COT Intelligence v7 – Institutional Decision Engine</title>
+<title>COT Intelligence v8 – Institutional Decision Engine</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap');
   :root{
@@ -89,6 +89,21 @@
   .its-label.sbr{background:rgba(192,103,74,.2);color:var(--bear);}
   .its-bar{height:4px;border-radius:2px;margin-top:6px;background:var(--border);}
   .its-bar-fill{height:100%;border-radius:2px;transition:width .8s ease;}
+
+  /* MOMENTUM HEATMAP */
+  .heatmap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;}
+  .heatmap-tile{border-radius:8px;padding:10px 12px;position:relative;border:1px solid var(--border);}
+  .heatmap-tile-name{font-family:var(--mono);font-weight:700;font-size:12px;margin-bottom:4px;}
+  .heatmap-tile-val{font-family:var(--mono);font-size:14px;font-weight:700;}
+  .heatmap-tile-badges{position:absolute;top:8px;right:8px;font-size:10px;letter-spacing:1px;}
+
+  /* SEASONAL */
+  .seasonal-row{display:grid;grid-template-columns:140px repeat(12,1fr);gap:4px;align-items:center;margin-bottom:10px;}
+  .seasonal-name{font-family:var(--mono);font-size:12px;font-weight:700;}
+  .seasonal-cell{height:30px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:9px;font-weight:700;color:#0a0b0a;}
+  .seasonal-cell.current-month{outline:2px solid var(--gold);outline-offset:-2px;}
+  .seasonal-month-labels{display:grid;grid-template-columns:140px repeat(12,1fr);gap:4px;margin-bottom:6px;}
+  .seasonal-month-labels span{font-family:var(--mono);font-size:9px;color:var(--muted);text-align:center;}
 
   /* FLOW OVERVIEW */
   .flow-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:20px;}
@@ -485,7 +500,7 @@
 <body>
 
 <header>
-  <div class="logo">COT Intelligence <span class="v3badge">v7 PRO</span> <span style="color:var(--muted);font-weight:400;font-size:11px;margin-left:8px;">Institutional Decision Engine</span></div>
+  <div class="logo">COT Intelligence <span class="v3badge">v8 PRO</span> <span style="color:var(--muted);font-weight:400;font-size:11px;margin-left:8px;">Institutional Decision Engine</span></div>
   <div class="header-right">
     <span id="last-updated" style="font-size:10px;">Not loaded</span>
     <button class="refresh-btn" id="theme-toggle-btn" onclick="toggleTheme()" style="background:var(--panel);color:var(--text);border:1px solid var(--border);">
@@ -509,6 +524,7 @@
   <button class="nav-tab" onclick="switchPage('divergence',this)">🔍 Divergence</button>
   <button class="nav-tab" onclick="switchPage('williams',this)">📊 Williams vs ITS</button>
   <button class="nav-tab" onclick="switchPage('williamsMetals',this)">🥇 Williams Metals</button>
+  <button class="nav-tab" onclick="switchPage('seasonal',this)">📅 Seasonal</button>
 </nav>
 
 <div id="quote-banner" style="text-align:center;padding:10px 20px;font-family:var(--mono);font-size:13px;font-weight:600;color:var(--muted);background:var(--surface);border-bottom:1px solid var(--border);transition:opacity .4s ease;">
@@ -546,6 +562,19 @@
       </div>
     </div>
     <div class="its-grid" id="its-grid">
+      <div class="empty-state" style="padding:16px;grid-column:1/-1">Load data first</div>
+    </div>
+  </div>
+
+  <!-- MOMENTUM HEATMAP -->
+  <div class="its-banner">
+    <div class="its-header">
+      <div>
+        <div class="its-title" style="color:var(--cyan)">🔥 Momentum Heatmap</div>
+        <div style="font-size:13px;font-weight:600;color:var(--muted);margin-top:2px;">4-week net-position change intensity across all loaded markets · 🔺 = confirmed higher high · 🔥 = streak ≥3wk</div>
+      </div>
+    </div>
+    <div class="heatmap-grid" id="heatmap-grid">
       <div class="empty-state" style="padding:16px;grid-column:1/-1">Load data first</div>
     </div>
   </div>
@@ -847,6 +876,14 @@
   </div>
 </div>
 
+<!-- ═══════════════ SEASONAL BIAS PAGE ═══════════════ -->
+<div class="page" id="page-seasonal">
+  <div class="info-box">📅 <strong>Seasonal Bias — Metals.</strong> Historical month-by-month tendency based on multi-decade demand cycles (jewelry, industrial restocking, safe-haven flows). Blue-green = historically bullish, red = historically bearish. Current month is outlined in gold. This is a background bias only — always weigh current COT positioning and price structure first.</div>
+  <div id="seasonal-content">
+    <div class="empty-state"><div class="icon">📅</div>Loading seasonal data…</div>
+  </div>
+</div>
+
 <!-- LOG MODAL -->
 <div id="log-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center;">
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;width:100%;max-width:480px;margin:20px;">
@@ -887,7 +924,7 @@
 </div>
 
 </main>
-<footer>COT Intelligence v7 PRO · Institutional Decision Engine · Forex Engine (Non-Comm 35% · Flow 35% · Curr Strength 20% · Comm 10%) · Metals Engine (Comm 35% · Div 25% · OI 25% · Non-Comm 15%) · NEW v7: Z-Score · Flow Persistence · Acceleration · Confidence % · Probability · Relative Flow Matrix · Williams-Enhanced Pair Builder · Data: CFTC</footer>
+<footer>COT Intelligence v8 PRO · Institutional Decision Engine · Forex Engine (Non-Comm 35% · Flow 35% · Curr Strength 20% · Comm 10%) · Metals Engine (Comm 35% · Div 25% · OI 25% · Non-Comm 15%) · NEW v8: Higher-High Detection · Momentum Heatmap · Institutional Streaks · Compression Detection · Vol-Adjusted Momentum · Continuation/Reversal Probability · Seasonal Bias (Metals) · Data: CFTC</footer>
 
 <script>
 const MARKETS = [
@@ -989,8 +1026,9 @@ async function fetchWithCORS(url){
   if(window.location.protocol==='file:'){
     // Try with no-cors won't work for JSON, so we must use a proxy
     const proxies=[
-      u=>`https://corsproxy.io/?${encodeURIComponent(u)}`,
+      u=>`https://corsproxy.io/?url=${encodeURIComponent(u)}`,
       u=>`https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+      u=>`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
       u=>`https://thingproxy.freeboard.io/fetch/${u}`,
     ];
     for(const proxy of proxies){
@@ -1002,18 +1040,29 @@ async function fetchWithCORS(url){
     throw new Error('FILE_PROTOCOL');
   }
   // Hosted context: try direct first, then proxies
+  // NOTE: corsproxy.io changed its API — it now requires the ?url= query param
+  // (https://corsproxy.io/?url=<target>) instead of the old raw-append format.
+  // Free tier is restricted to localhost/github.io/etc — GitHub Pages qualifies.
   const proxies=[
     u=>u,
-    u=>`https://corsproxy.io/?${encodeURIComponent(u)}`,
+    u=>`https://corsproxy.io/?url=${encodeURIComponent(u)}`,
     u=>`https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+    u=>`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
   ];
+  const failures=[];
   for(const proxy of proxies){
     try{
       const r=await fetch(proxy(url));
-      if(r.ok){const d=await r.json(); if(Array.isArray(d)&&d.length>0) return d;}
-    } catch(e){ /* try next */ }
+      if(r.ok){
+        const d=await r.json();
+        if(Array.isArray(d)&&d.length>0) return d;
+        failures.push(`${new URL(proxy(url)).hostname}: empty response`);
+      } else {
+        failures.push(`${new URL(proxy(url)).hostname}: HTTP ${r.status}`);
+      }
+    } catch(e){ failures.push(`${new URL(proxy(url)).hostname}: ${e.message}`); }
   }
-  throw new Error('All CORS proxies failed');
+  throw new Error('All CORS proxies failed — '+failures.join(' | '));
 }
 
 async function fetchMarket(market){
@@ -1040,11 +1089,14 @@ async function loadData(){
       Promise.allSettled(MARKETS.map(m=>fetchMarket(m).then(rows=>({id:m.id,rows})))),
       Promise.allSettled(DISAGG_MARKETS.map(m=>fetchDisaggMarket(m).then(rows=>({id:m.id,rows}))))
     ]);
-    let loaded=0;
-    legacyResults.forEach(r=>{if(r.status==='fulfilled'&&r.value.rows.length){allData[r.value.id]=r.value.rows;loaded++;}});
+    let loaded=0, firstError=null;
+    legacyResults.forEach(r=>{
+      if(r.status==='fulfilled'&&r.value.rows.length){allData[r.value.id]=r.value.rows;loaded++;}
+      else if(r.status==='rejected'&&!firstError) firstError=r.reason&&r.reason.message;
+    });
     disaggResults.forEach(r=>{if(r.status==='fulfilled'&&r.value.rows.length>0){disaggData[r.value.id]=r.value.rows;}});
     if(loaded===0){
-      showStatus('error','No data returned — CFTC API may be down, or CORS proxies all failed. Open DevTools → Network tab to see which requests failed.');
+      showStatus('error',`No data returned — CFTC API may be down, or CORS proxies all failed.${firstError?`<br><br><span style="font-family:var(--mono);font-size:11px;">Detail: ${firstError}</span>`:''}<br><br>Open DevTools → Network tab to see which requests failed, or click "Fetch COT Data" again — public CORS proxies are sometimes briefly rate-limited under burst load.`);
     } else {
       const disaggLoaded=Object.keys(disaggData).length;
       showStatus('','');
@@ -1337,9 +1389,42 @@ function renderWilliamsMetalsPage(){
 }
 
 function renderAll(){
-  renderCards(); renderStrengthPage(); renderPairsPage(); renderExtremesPage(); renderDivergencePage(); renderDashboard(); renderDisaggPage(); renderMatrixPage(); renderWilliamsPage(); renderWilliamsMetalsPage();
+  renderCards(); renderStrengthPage(); renderPairsPage(); renderExtremesPage(); renderDivergencePage(); renderDashboard(); renderDisaggPage(); renderMatrixPage(); renderWilliamsPage(); renderWilliamsMetalsPage(); renderSeasonalPage();
 }
 
+// ─── SEASONAL BIAS PAGE ────────────────────────────────────────────────────────
+function renderSeasonalPage(){
+  const el=document.getElementById('seasonal-content');
+  if(!el) return;
+  const metalIds=['GOLD','SILVER','COPPER','PLATINUM','PALLADIUM'];
+  const currentMonth=new Date().getMonth();
+  const biasColor=(v)=>{
+    // 0-100 scale -> red (bearish) to green (bullish)
+    if(v>=75) return '#6f9e5c';
+    if(v>=60) return '#a8cf9e';
+    if(v>=45) return '#c9a35f';
+    if(v>=30) return '#d19a82';
+    return '#c0674a';
+  };
+  let html=`<div class="seasonal-month-labels"><span></span>${MONTH_NAMES.map(mn=>`<span>${mn}</span>`).join('')}</div>`;
+  metalIds.forEach(id=>{
+    const bias=SEASONAL_BIAS[id];
+    const m=MARKETS.find(x=>x.id===id);
+    if(!bias||!m) return;
+    html+=`<div class="seasonal-row">
+      <div class="seasonal-name">${m.name}</div>
+      ${bias.map((v,i)=>`<div class="seasonal-cell ${i===currentMonth?'current-month':''}" style="background:${biasColor(v)}" title="${MONTH_NAMES[i]}: ${v}/100">${v}</div>`).join('')}
+    </div>`;
+    html+=`<div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin:-4px 0 14px 0;">${seasonalNote(id)}</div>`;
+  });
+  el.innerHTML=html;
+}
+
+function goToMarketDetail(id){
+  const marketsBtn=document.querySelector(".nav-tab[onclick*=\"'markets'\"]");
+  switchPage('markets',marketsBtn);
+  setTimeout(()=>showDetail(id),50);
+}
 function switchPage(page,btn){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
@@ -1668,6 +1753,104 @@ function getWeeklyChanges(rows){
   const changes=[];
   for(let i=0;i<nets.length-1;i++) changes.push(nets[i]-nets[i+1]);
   return changes;
+}
+
+// ─── NEW v8 SIGNALS: Higher-High / Streak / Compression / Vol-Adj Momentum / Probability / Seasonal ──
+
+// Detects swing highs in the net-position series and flags when the most recent
+// confirmed swing high is higher than the one before it (early trend-continuation signal).
+function calcHigherHigh(nets){
+  if(!nets||nets.length<6) return {detected:false};
+  const chrono=nets.slice().reverse(); // oldest -> newest
+  const swingHighs=[];
+  for(let i=1;i<chrono.length-1;i++){
+    if(chrono[i]>chrono[i-1]&&chrono[i]>chrono[i+1]) swingHighs.push({idx:i,val:chrono[i]});
+  }
+  if(swingHighs.length<2) return {detected:false};
+  const last=swingHighs[swingHighs.length-1], prior=swingHighs[swingHighs.length-2];
+  return {detected:last.val>prior.val, lastVal:last.val, priorVal:prior.val, weeksAgo:chrono.length-1-last.idx};
+}
+
+// Consecutive weeks of net buying or net selling (institutional commitment streak).
+function calcStreak(nets){
+  if(!nets||nets.length<2) return {count:0,direction:'flat'};
+  const dir=nets[0]>=nets[1]?'buying':'selling';
+  let count=0;
+  for(let i=0;i<nets.length-1;i++){
+    const wow=nets[i]-nets[i+1];
+    if((dir==='buying'&&wow>=0)||(dir==='selling'&&wow<=0)) count++;
+    else break;
+  }
+  return {count,direction:dir};
+}
+
+// Compression: recent 8-week net-position range shrinks to <60% of the prior 8-week
+// range — a classic pre-expansion / volatility-squeeze warning.
+function calcCompression(nets){
+  if(!nets||nets.length<16) return {detected:false};
+  const recent8=nets.slice(0,8), prior8=nets.slice(8,16);
+  const recentRange=Math.max(...recent8)-Math.min(...recent8);
+  const priorRange=Math.max(...prior8)-Math.min(...prior8)||1;
+  const ratio=recentRange/priorRange;
+  return {detected:ratio<0.6, ratio:+ratio.toFixed(2)};
+}
+
+// Weekly volatility adjustment: how many multiples of the "normal" 12-week average
+// weekly move the latest WoW change represents.
+function calcVolAdjMomentum(nets){
+  if(!nets||nets.length<13) return null;
+  const changes=[];
+  for(let i=0;i<12;i++) changes.push(Math.abs(nets[i]-nets[i+1]));
+  const avgVol=changes.reduce((a,b)=>a+b,0)/changes.length||1;
+  const lastChange=Math.abs(nets[0]-nets[1]);
+  return +(lastChange/avgVol).toFixed(1);
+}
+
+// Continuation vs reversal probability — blends COT Index extremity, flow direction,
+// streak length and compression into a single 0-100 continuation estimate.
+function calcContinuationProbability(nets,flow,streak,compression,cotIdx){
+  if(!nets||nets.length<13||cotIdx===null) return null;
+  const bullSignals=[
+    cotIdx>60?1:0,
+    flow.wow>0?1:0,
+    flow.w4>0?1:0,
+    streak.count>=3&&streak.direction==='buying'?1:0,
+    !compression.detected?1:0,
+  ];
+  const bearSignals=[
+    cotIdx<40?1:0,
+    flow.wow<0?1:0,
+    flow.w4<0?1:0,
+    streak.count>=3&&streak.direction==='selling'?1:0,
+    !compression.detected?1:0,
+  ];
+  const bullCount=bullSignals.reduce((a,b)=>a+b,0), bearCount=bearSignals.reduce((a,b)=>a+b,0);
+  const leaning=bullCount>=bearCount?'continuation':'reversal';
+  const contProb=Math.round((bullCount/5)*100);
+  const revProb=100-contProb;
+  return {contProb,revProb,leaning};
+}
+
+// Seasonal bias (0-100 = historically bullish tendency) by calendar month, based on
+// well-documented multi-decade COT / seasonal patterns. Gold/Silver: Q4 + Jun-Aug
+// jewelry & safe-haven demand. Copper: Q1 China restocking, Q3 summer slowdown.
+const SEASONAL_BIAS={
+  GOLD:     [60,30,20,50,40,70,55,80,70,90,85,90],
+  SILVER:   [70,60,50,40,30,45,55,70,60,70,60,70],
+  COPPER:   [80,70,60,50,40,30,30,50,60,50,40,50],
+  PLATINUM: [55,50,45,50,50,55,50,55,60,60,55,55],
+  PALLADIUM:[55,50,45,45,50,55,55,55,60,60,55,55],
+};
+const MONTH_NAMES=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function seasonalNote(id){
+  const notes={
+    GOLD:'Q4 bullish (Oct–Dec jewelry demand) · Jun–Aug bullish (Indian wedding season)',
+    SILVER:'Follows Gold + industrial demand tends to firm Q1–Q2',
+    COPPER:'Q1 China restocking bullish · Q3 summer slowdown bearish',
+    PLATINUM:'Weaker seasonality than Gold/Silver — mostly auto-catalyst industrial demand driven',
+    PALLADIUM:'Weaker seasonality — driven by auto-catalyst demand cycles more than calendar effects',
+  };
+  return notes[id]||'';
 }
 
 // ─── OI TREND ─────────────────────────────────────────────────────────────────
@@ -2049,6 +2232,30 @@ function renderDashboard(){
   if(Object.keys(allData).length===0) return;
   renderITSGrid();
   renderTopTrades();
+  renderHeatmap();
+}
+
+// ─── MOMENTUM HEATMAP (all loaded markets, colored by 4W flow intensity) ──────
+function renderHeatmap(){
+  const grid=document.getElementById('heatmap-grid');
+  if(!grid) return;
+  const loaded=MARKETS.filter(m=>allData[m.id]&&allData[m.id].length>1);
+  if(loaded.length===0){ grid.innerHTML=`<div class="empty-state" style="padding:16px;grid-column:1/-1">Load data first</div>`; return; }
+  // Find max abs 4W change across all loaded markets to normalize color intensity
+  const flows=loaded.map(m=>({m,flow:getFlowChanges(allData[m.id]),nets:allData[m.id].map(r=>getNet(r))}));
+  const maxAbs=Math.max(...flows.map(f=>Math.abs(f.flow.w4)),1);
+  grid.innerHTML=flows.map(({m,flow,nets})=>{
+    const intensity=Math.min(1,Math.abs(flow.w4)/maxAbs);
+    const isBull=flow.w4>=0;
+    const bg=isBull?`rgba(111,158,92,${0.12+intensity*0.55})`:`rgba(192,103,74,${0.12+intensity*0.55})`;
+    const hh=calcHigherHigh(nets), streak=calcStreak(nets);
+    const badges=(hh.detected?'🔺':'')+(streak.count>=3?'🔥':'');
+    return `<div class="heatmap-tile" style="background:${bg};cursor:pointer;" onclick="goToMarketDetail('${m.id}')">
+      <div class="heatmap-tile-name">${m.id}</div>
+      <div class="heatmap-tile-val" style="color:${isBull?'#6f9e5c':'#c0674a'}">${fmtChange(flow.w4)}</div>
+      ${badges?`<div class="heatmap-tile-badges">${badges}</div>`:''}
+    </div>`;
+  }).join('');
 }
 
 function renderITSGrid(){
@@ -2452,33 +2659,36 @@ function showDetail(id){
   const accel=calcAcceleration(rows);
   const accelLbl=accelLabel(accel);
   const netPct=calcNetPctOI(rows);
-  const conf=calcConfidence(rows,isMetals,m.id);
 
   const zColor=z?Math.abs(z.z)>=2.5?'#c0674a':Math.abs(z.z)>=1.5?'#c9a35f':'#a8cf9e':var_muted;
   const netPctColor=netPct!==null?Math.abs(netPct)>=35?'#c0674a':Math.abs(netPct)>=20?'#c9a35f':'#a8cf9e':var_muted;
 
+  // ── NEW v8 Signal Confluence (consolidated: higher-high, streak, compression, vol-adj momentum, probability) ──
+  const nets_=rows.map(ro=>getNet(ro));
+  const hh=calcHigherHigh(nets_);
+  const streak8=calcStreak(nets_);
+  const compression8=calcCompression(nets_);
+  const volAdj8=calcVolAdjMomentum(nets_);
+  const flow8=getFlowChanges(rows);
+  const contProb8=calcContinuationProbability(nets_,flow8,streak8,compression8,ci?ci.index:null);
+
   instEl.innerHTML=`
   <div style="font-size:11px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;"><span style="width:6px;height:6px;border-radius:50%;background:#6fa89a;display:inline-block;"></span> Institutional Analytics</div>
 
-  ${conf?`<div class="conf-wrap">
-    <div class="conf-title">🎯 Confidence Score & Probability</div>
-    <div style="display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;">
-      <div>
-        <div class="conf-score-big" style="color:${conf.confidence>=70?'#6f9e5c':conf.confidence>=50?'#c9a35f':'#c0674a'}">${conf.confidence}%</div>
-        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:2px;">CONFIDENCE</div>
-      </div>
-      <div>
-        <div class="conf-score-big" style="color:var(--purple)">${conf.probability}%</div>
-        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:2px;">PROB 2–6W CONTINUATION</div>
-      </div>
-      <div style="flex:1;min-width:160px;">
-        <div class="conf-checks">
-          ${conf.checks.map(c=>`<div class="conf-check"><span class="conf-check-icon">${c.pass?'✅':'❌'}</span><span style="color:${c.pass?'#a8cf9e':'#d19a82'}">${c.label}</span><span style="color:var(--muted);margin-left:auto;font-size:8px;">${c.detail} · ${c.weight}%</span></div>`).join('')}
-        </div>
-      </div>
+  <div class="conf-wrap">
+    <div class="conf-title">📡 Signal Confluence</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+      <span style="font-family:var(--mono);font-size:10px;padding:4px 9px;border-radius:20px;background:${hh.detected?'rgba(111,158,92,.15)':'var(--subtle)'};color:${hh.detected?'#6f9e5c':'var(--muted)'};">${hh.detected?`🔺 Higher High (${hh.weeksAgo}w ago)`:'No confirmed higher high'}</span>
+      <span style="font-family:var(--mono);font-size:10px;padding:4px 9px;border-radius:20px;background:${streak8.count>=3?'rgba(201,163,95,.15)':'var(--subtle)'};color:${streak8.count>=3?'var(--gold)':'var(--muted)'};">🔥 ${streak8.count}wk ${streak8.direction} streak</span>
+      <span style="font-family:var(--mono);font-size:10px;padding:4px 9px;border-radius:20px;background:${compression8.detected?'rgba(154,143,174,.15)':'var(--subtle)'};color:${compression8.detected?'var(--purple)':'var(--muted)'};">${compression8.detected?`🧬 Compression (${compression8.ratio}× range)`:'No compression'}</span>
+      ${volAdj8!==null?`<span style="font-family:var(--mono);font-size:10px;padding:4px 9px;border-radius:20px;background:var(--subtle);color:${volAdj8>=2?'#c0674a':volAdj8>=1.4?'var(--neutral)':'var(--muted)'};">⚡ ${volAdj8}× normal weekly move</span>`:''}
     </div>
-    <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:8px;">Direction assessed: ${conf.isBull?'▲ BULLISH':'▼ BEARISH'} · Probability is statistical estimate only, not a guarantee.</div>
-  </div>`:''}
+    ${contProb8?`<div>
+      <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--muted);margin-bottom:3px;"><span>Continuation ${contProb8.contProb}%</span><span>Reversal ${contProb8.revProb}%</span></div>
+      <div style="height:6px;border-radius:3px;background:#c0674a;overflow:hidden;"><div style="height:100%;width:${contProb8.contProb}%;background:#6f9e5c;"></div></div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:6px;">Leaning: <span style="color:${contProb8.leaning==='continuation'?'#6f9e5c':'#c0674a'}">${contProb8.leaning.toUpperCase()}</span> · derived from COT Index, WoW/4W flow, streak length & compression state.</div>
+    </div>`:'<div style="font-family:var(--mono);font-size:9px;color:var(--muted);">Need 13+ weeks of data for probability estimate.</div>'}
+  </div>
 
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
     <div class="zscore-wrap">
