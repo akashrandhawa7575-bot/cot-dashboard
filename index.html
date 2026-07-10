@@ -507,7 +507,7 @@
       <span id="theme-toggle-icon">🌙</span> <span id="theme-toggle-label">Dark</span>
     </button>
     <button class="refresh-btn" id="refresh-btn" onclick="loadData()">
-      <span id="refresh-icon">↻</span> Fetch COT Data
+      <span id="refresh-icon">↻</span> Reload Data
     </button>
   </div>
 </header>
@@ -624,7 +624,7 @@
     <button class="tab-btn" onclick="filterCategory('metals',this)">Metals</button>
   </div>
   <div class="flow-grid" id="cards-grid">
-    <div style="grid-column:1/-1;color:var(--muted);font-family:var(--mono);font-size:12px;padding:20px 0;">No data loaded yet. Click "Fetch COT Data" to load.</div>
+    <div style="grid-column:1/-1;color:var(--muted);font-family:var(--mono);font-size:12px;padding:20px 0;">No data loaded yet. Click "Reload Data" to load.</div>
   </div>
   <div id="detail-panel">
     <div class="detail-header">
@@ -892,9 +892,6 @@
       <div><label class="modal-label">Market</label>
         <select id="log-market" class="modal-input">
           <option value="">Select market…</option>
-          <option>EUR</option><option>GBP</option><option>JPY</option><option>CHF</option>
-          <option>CAD</option><option>AUD</option><option>NZD</option><option>MXN</option>
-          <option>GOLD</option><option>SILVER</option><option>COPPER</option>
         </select>
       </div>
       <div><label class="modal-label">Direction</label>
@@ -1021,6 +1018,23 @@ const DISAGG_MARKETS=[
   { id:'COPPER',name:'Copper (XCU)',        cat:'metals', cftcName:'COPPER- #1 - COMMODITY EXCHANGE INC.' },
 ];
 
+// ─── STATIC DATA SNAPSHOT (preferred) ─────────────────────────────────────────
+// A GitHub Action (.github/workflows/update-cot-data.yml) fetches CFTC data
+// server-side once a week and commits it here. Loading this file is same-origin
+// (no CORS issue at all, no dependency on third-party proxies staying up) and
+// is instant. Live proxy fetching below is kept only as a fallback for the
+// period before the Action has run for the first time, or if you want to force
+// a live pull for some other reason.
+const DATA_SNAPSHOT_URL='data/cot-data.json';
+
+async function loadStaticSnapshot(){
+  const res=await fetch(`${DATA_SNAPSHOT_URL}?t=${Date.now()}`); // cache-bust
+  if(!res.ok) throw new Error(`HTTP ${res.status}`);
+  const snap=await res.json();
+  if(!snap||!snap.legacy||!snap.legacyCount) throw new Error('Snapshot empty or malformed');
+  return snap;
+}
+
 async function fetchWithCORS(url){
   // Detect file:// protocol — Chrome blocks all fetches from local files
   if(window.location.protocol==='file:'){
@@ -1077,12 +1091,51 @@ async function fetchDisaggMarket(market){
   return fetchWithCORS(url);
 }
 
-async function loadData(){
+async function loadData(forceLive){
   const btn=document.getElementById('refresh-btn');
   const icon=document.getElementById('refresh-icon');
   btn.disabled=true; icon.className='spin'; icon.textContent='↻';
-  showStatus('loading','Fetching COT data from CFTC (trying direct + CORS proxies)…');
   allData={}; disaggData={};
+
+  // 1) Try the static snapshot first (fast, no CORS/proxy dependency at all).
+  if(!forceLive){
+    showStatus('loading','Loading COT data snapshot…');
+    try{
+      const snap=await loadStaticSnapshot();
+      Object.entries(snap.legacy||{}).forEach(([id,rows])=>{ if(rows&&rows.length) allData[id]=rows; });
+      Object.entries(snap.disagg||{}).forEach(([id,rows])=>{ if(rows&&rows.length) disaggData[id]=rows; });
+      const loaded=Object.keys(allData).length, disaggLoaded=Object.keys(disaggData).length;
+      if(loaded>0){
+        const genDate=snap.generated?new Date(snap.generated).toLocaleString():'unknown';
+        const staleWarn=snap.generated&&(Date.now()-new Date(snap.generated).getTime())>9*24*60*60*1000
+          ?` <span style="color:var(--neutral)">⚠ snapshot is over 9 days old — the weekly Action may have failed, check the Actions tab</span>`:'';
+        showStatus('','');
+        document.getElementById('last-updated').innerHTML=`Snapshot: ${genDate} · Legacy: ${loaded} · Disagg: ${disaggLoaded} <a href="#" onclick="loadData(true);return false;" style="color:var(--accent);margin-left:8px;">force live fetch</a>${staleWarn}`;
+        renderAll();
+        btn.disabled=false; icon.className=''; icon.textContent='↻';
+        return;
+      }
+      // fall through to live fetch if snapshot had no usable data
+    } catch(e){
+      // Static snapshot not available yet (e.g. Action hasn't run) — fall back to live fetch below.
+    }
+  }
+
+  // 2) Live fetch via CORS proxies — fallback only.
+  // file:// pages can't fetch cross-origin at all — no CORS proxy can fix this,
+  // since browsers block the outgoing request itself, not just the response.
+  if(window.location.protocol==='file:'){
+    showStatus('error',`
+      <strong>Cannot fetch from a local file</strong> — this page is open as <code>file://…</code>, and Chrome blocks cross-origin network requests entirely from local files (not even a CORS proxy can work around this).<br><br>
+      <strong>Fix (choose one):</strong><br>
+      1. <strong>Use your live GitHub Pages URL</strong> instead of the local file — this is the simplest option and matches how your dashboard actually runs.<br>
+      2. <strong>VS Code Live Server</strong> — right-click the file → Open with Live Server<br>
+      3. <strong>Python server</strong> — run <code>python -m http.server 8080</code> in the file's folder, then open <a href="http://localhost:8080" style="color:var(--accent)">localhost:8080</a>
+    `);
+    btn.disabled=false; icon.className=''; icon.textContent='↻';
+    return;
+  }
+  showStatus('loading','No data snapshot found — fetching live from CFTC (trying direct + CORS proxies)…');
   try{
     // Fetch Legacy and Disaggregated in parallel
     const [legacyResults, disaggResults]=await Promise.all([
@@ -1096,25 +1149,15 @@ async function loadData(){
     });
     disaggResults.forEach(r=>{if(r.status==='fulfilled'&&r.value.rows.length>0){disaggData[r.value.id]=r.value.rows;}});
     if(loaded===0){
-      showStatus('error',`No data returned — CFTC API may be down, or CORS proxies all failed.${firstError?`<br><br><span style="font-family:var(--mono);font-size:11px;">Detail: ${firstError}</span>`:''}<br><br>Open DevTools → Network tab to see which requests failed, or click "Fetch COT Data" again — public CORS proxies are sometimes briefly rate-limited under burst load.`);
+      showStatus('error',`No data returned — no static snapshot found, and CFTC API/CORS proxies also failed.${firstError?`<br><br><span style="font-family:var(--mono);font-size:11px;">Detail: ${firstError}</span>`:''}<br><br>If you just set up the GitHub Action, it needs to run once (check the Actions tab, or trigger it manually) before a snapshot exists. Otherwise, open DevTools → Network tab to see which requests failed.`);
     } else {
       const disaggLoaded=Object.keys(disaggData).length;
       showStatus('','');
-      document.getElementById('last-updated').textContent=`Updated ${new Date().toLocaleTimeString()} · Legacy: ${loaded} · Disagg: ${disaggLoaded}`;
+      document.getElementById('last-updated').textContent=`Live fetch ${new Date().toLocaleTimeString()} · Legacy: ${loaded} · Disagg: ${disaggLoaded}`;
       renderAll();
     }
   } catch(e){
-    if(e.message==='FILE_PROTOCOL'||Object.keys(allData).length===0){
-      showStatus('error',`
-        <strong>Cannot fetch from local file</strong> — Chrome blocks network requests when opening HTML files directly.<br><br>
-        <strong>Fix (choose one):</strong><br>
-        1. <strong>VS Code Live Server</strong> — right-click the file → Open with Live Server<br>
-        2. <strong>Python server</strong> — run <code>python -m http.server 8080</code> in the file folder, then open <a href="http://localhost:8080" style="color:var(--accent)">localhost:8080</a><br>
-        3. <strong>Chrome flag</strong> — launch Chrome with <code>--disable-web-security --user-data-dir=/tmp/chrome</code>
-      `);
-    } else {
-      showStatus('error','Network error: '+e.message);
-    }
+    showStatus('error','Network error: '+e.message);
   }
   btn.disabled=false; icon.className=''; icon.textContent='↻';
 }
@@ -1199,8 +1242,12 @@ function saveLog(entries){
 
 function showLogModal(market,itsVal,willVal){
   const modal=document.getElementById('log-modal');
+  const sel=document.getElementById('log-market');
+  // Rebuild options from the single source of truth (MARKETS) so this list
+  // can never drift out of sync again when markets are added/removed.
+  sel.innerHTML='<option value="">Select market…</option>'+MARKETS.map(m=>`<option>${m.id}</option>`).join('');
   modal.style.display='flex';
-  if(market) document.getElementById('log-market').value=market;
+  if(market) sel.value=market;
   if(itsVal!==undefined) document.getElementById('log-its').value=itsVal;
   if(willVal!==undefined) document.getElementById('log-will').value=willVal;
 }
@@ -2335,7 +2382,7 @@ function renderCards(){
   grid.innerHTML='';
   const show=MARKETS.filter(m=>(activeCategory==='all'||m.cat===activeCategory)&&allData[m.id]);
   if(show.length===0){
-    grid.innerHTML=`<div style="grid-column:1/-1;color:var(--muted);font-family:var(--mono);font-size:12px;padding:20px 0;">No data loaded yet. Click "Fetch COT Data" to load.</div>`;
+    grid.innerHTML=`<div style="grid-column:1/-1;color:var(--muted);font-family:var(--mono);font-size:12px;padding:20px 0;">No data loaded yet. Click "Reload Data" to load.</div>`;
     return;
   }
   show.forEach(m=>{
@@ -3145,7 +3192,7 @@ function runTradeFilter(){
   const resultEl=document.getElementById('tf-result');
 
   if(Object.keys(allData).length===0){
-    resultEl.innerHTML=`<div class="custom-pair-error">⚠ No COT data loaded yet. Click "Fetch COT Data" at the top first.</div>`;
+    resultEl.innerHTML=`<div class="custom-pair-error">⚠ No COT data loaded yet. Click "Reload Data" at the top first.</div>`;
     return;
   }
 
@@ -3502,7 +3549,7 @@ function renderDivergencePage(){
   }).join('');
 }
 
-window.addEventListener('load',()=>{initTheme();initQuoteRotation();renderCustomPairChips();renderSignalLog();tfUpdateInstrumentOptions();});
+window.addEventListener('load',()=>{initTheme();initQuoteRotation();renderCustomPairChips();renderSignalLog();tfUpdateInstrumentOptions();loadData();});
 window.addEventListener('resize',()=>{if(selectedId&&allData[selectedId]) drawChart(allData[selectedId]);});
 </script>
 </body>
