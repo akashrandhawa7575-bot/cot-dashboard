@@ -48,6 +48,27 @@
 
   main{max-width:1440px;margin:0 auto;padding:28px 28px;}
   .page{display:none;}
+  .page-group{display:none;}
+  .page-group.active{display:block;}
+  .sub-tabs{display:flex;gap:6px;padding:14px 32px 0;flex-wrap:wrap;}
+  .sub-tab{font-family:var(--sans);font-size:12.5px;font-weight:600;letter-spacing:.01em;padding:7px 14px;border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;border-radius:999px;transition:all .15s;white-space:nowrap;}
+  .sub-tab.active{color:#fff;background:var(--accent);border-color:var(--accent);}
+  .sub-tab:not(.active):hover{color:var(--text);border-color:var(--accent);}
+  .subpage{display:none;padding-top:16px;}
+  .subpage.active{display:block;}
+  .news-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid var(--border);}
+  .news-item:last-child{border-bottom:none;}
+  .news-day{font-family:var(--mono);font-size:11px;color:var(--muted);width:64px;flex-shrink:0;}
+  .news-time{font-family:var(--mono);font-size:12px;color:var(--text);width:76px;flex-shrink:0;font-weight:600;}
+  .news-flag{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--accent);width:44px;flex-shrink:0;}
+  .news-title{flex:1;font-size:13px;color:var(--text);}
+  .news-impact{font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;flex-shrink:0;}
+  .news-impact.High{background:rgba(193,122,84,.15);color:var(--bear);}
+  .news-impact.Medium{background:rgba(201,163,95,.15);color:var(--neutral);}
+  .news-impact.Low{background:rgba(127,174,130,.12);color:var(--accent);}
+  .news-forecast{font-family:var(--mono);font-size:11px;color:var(--muted);width:110px;flex-shrink:0;text-align:right;}
+  .news-list-wrap{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+  @media(max-width:700px){.news-forecast{display:none;}.news-flag{width:36px;}}
   .page.active{display:block;}
 
   .section-title{font-size:13px;font-weight:700;font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
@@ -556,15 +577,10 @@
   <button class="nav-tab active" onclick="switchPage('dashboard',this)">🚀 Dashboard</button>
   <button class="nav-tab" onclick="switchPage('tradefilter',this)">🎯 Trade Filter</button>
   <button class="nav-tab" onclick="switchPage('markets',this)">📊 Markets</button>
-  <button class="nav-tab" onclick="switchPage('disagg',this)">🔬 Disaggregated</button>
   <button class="nav-tab" onclick="switchPage('strength',this)">💪 Currency Strength</button>
-  <button class="nav-tab" onclick="switchPage('matrix',this)">🧮 Flow Matrix</button>
-  <button class="nav-tab" onclick="switchPage('pairs',this)">🔀 Pair Builder</button>
-  <button class="nav-tab" onclick="switchPage('extremes',this)">🚨 Extreme Scanner</button>
-  <button class="nav-tab" onclick="switchPage('divergence',this)">🔍 Divergence</button>
+  <button class="nav-tab" onclick="switchPage('signals',this)">🚨 Signals</button>
   <button class="nav-tab" onclick="switchPage('williams',this)">📊 Williams vs ITS</button>
-  <button class="nav-tab" onclick="switchPage('williamsMetals',this)">🥇 Williams Metals</button>
-  <button class="nav-tab" onclick="switchPage('seasonal',this)">📅 Seasonal</button>
+  <button class="nav-tab" onclick="switchPage('news',this)">📰 News</button>
 </nav>
 
 <div id="quote-banner" style="text-align:center;padding:10px 20px;font-family:var(--mono);font-size:13px;font-weight:600;color:var(--muted);background:var(--surface);border-bottom:1px solid var(--border);transition:opacity .4s ease;">
@@ -573,8 +589,6 @@
 
 <main>
 <div id="status-area"></div>
-
-<!-- ═══════════════ DASHBOARD PAGE ═══════════════ -->
 <div class="page active" id="page-dashboard">
 
   <!-- TOP 5 TRADES -->
@@ -619,9 +633,21 @@
     </div>
   </div>
 
-</div>
+  <!-- NEWS SUMMARY WIDGET -->
+  <div class="its-banner">
+    <div class="its-header">
+      <div>
+        <div class="its-title" style="color:var(--gold)">📰 High-Impact News This Week</div>
+        <div style="font-size:13px;font-weight:600;color:var(--muted);margin-top:2px;">Next high-impact releases · times in your local timezone</div>
+      </div>
+      <button class="tab-btn" style="border-radius:8px;" onclick="const b=document.querySelector('.nav-tab[onclick*=&quot;\'news\'&quot;]');switchPage('news',b);">View full calendar →</button>
+    </div>
+    <div id="news-dashboard-widget">
+      <div class="empty-state" style="padding:16px;grid-column:1/-1">Loading this week's high-impact events…</div>
+    </div>
+  </div>
 
-<!-- ═══════════════ TRADE FILTER PAGE ═══════════════ -->
+</div>
 <div class="page" id="page-tradefilter">
   <div class="info-box">🎯 <strong>Trade Filter</strong> — Pick what you're about to trade and the direction you're leaning. This pulls <em>only</em> the correct method for that market — <strong>ITS differential</strong> for forex pairs, <strong>Williams Method (26-week Commercial COT Index)</strong> for metals — and gives one clean verdict. No cross-referencing pages before an entry.</div>
 
@@ -655,9 +681,14 @@
     <div id="tf-result"></div>
   </div>
 </div>
-
-<!-- ═══════════════ MARKETS PAGE ═══════════════ -->
-<div class="page" id="page-markets">
+<!-- ═══════════════ MARKETS GROUP ═══════════════ -->
+<div class="page-group active" id="pagegroup-markets">
+  <div class="sub-tabs">
+    <button class="sub-tab active" onclick="switchSub('markets','markets',this)">📊 Overview</button>
+    <button class="sub-tab" onclick="switchSub('markets','disagg',this)">🔬 Disaggregated</button>
+    <button class="sub-tab" onclick="switchSub('markets','seasonal',this)">📅 Seasonal (Metals)</button>
+  </div>
+<div class="subpage active" id="page-markets">
   <div class="tab-row">
     <button class="tab-btn active" onclick="filterCategory('all',this)">All</button>
     <button class="tab-btn" onclick="filterCategory('forex',this)">Forex</button>
@@ -784,9 +815,31 @@
     </div>
   </div>
 </div>
+<div class="subpage" id="page-disagg">
+  <div class="info-box">🔬 <strong>Disaggregated COT Report</strong> — Professional-grade breakdown. <strong>Asset Managers</strong> = real money (pension funds, sovereign wealth) — the true smart money. <strong>Leveraged Funds</strong> = hedge funds, trend followers — fast money. <strong>Dealer/Intermediary</strong> = banks booking the other side. Data: CFTC Disaggregated Futures report (separate API endpoint). ⚠️ Note: Disaggregated data covers commodities/metals well; forex uses Legacy data as fallback.</div>
+  <div class="tab-row">
+    <button class="tab-btn active" onclick="filterDisaggCategory('all',this)">All</button>
+    <button class="tab-btn" onclick="filterDisaggCategory('forex',this)">Forex</button>
+    <button class="tab-btn" onclick="filterDisaggCategory('metals',this)">Metals</button>
+  </div>
+  <div id="disagg-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;"></div>
+</div>
+<div class="subpage" id="page-seasonal">
+  <div class="info-box">📅 <strong>Seasonal Bias — Metals.</strong> Historical month-by-month tendency based on multi-decade demand cycles (jewelry, industrial restocking, safe-haven flows). Blue-green = historically bullish, red = historically bearish. Current month is outlined in gold. This is a background bias only — always weigh current COT positioning and price structure first.</div>
+  <div id="seasonal-content">
+    <div class="empty-state"><div class="icon">📅</div>Loading seasonal data…</div>
+  </div>
+</div>
+</div>
 
-<!-- ═══════════════ STRENGTH PAGE ═══════════════ -->
-<div class="page" id="page-strength">
+<!-- ═══════════════ CURRENCY STRENGTH GROUP ═══════════════ -->
+<div class="page-group" id="pagegroup-strength">
+  <div class="sub-tabs">
+    <button class="sub-tab active" onclick="switchSub('strength','strength',this)">💪 Ranking</button>
+    <button class="sub-tab" onclick="switchSub('strength','matrix',this)">🧮 Flow Matrix</button>
+    <button class="sub-tab" onclick="switchSub('strength','pairs',this)">🔀 Pair Builder</button>
+  </div>
+<div class="subpage active" id="page-strength">
   <div class="info-box">💡 ITS Score (Institutional Trend Score) combines COT Index (30%) + normalized 4-week flow (25%) + graduated OI trend (20%) + commercial confirmation (25%). Load data first.</div>
   <div class="strength-layout">
     <div class="strength-panel">
@@ -799,9 +852,11 @@
     </div>
   </div>
 </div>
-
-<!-- ═══════════════ PAIR BUILDER PAGE ═══════════════ -->
-<div class="page" id="page-pairs">
+<div class="subpage" id="page-matrix">
+  <div class="info-box">🧮 <strong>Relative Currency Flow Matrix</strong> — Institutional-grade cross-currency comparison. Each cell shows the ITS differential (row vs column). <span style="color:var(--bull)">Green = row currency stronger</span>. <span style="color:var(--bear)">Red = row weaker</span>. Confidence % and probability estimate are shown per currency. Z-Score uses full available history.</div>
+  <div id="matrix-content" style="overflow-x:auto;"></div>
+</div>
+<div class="subpage" id="page-pairs">
   <div class="info-box">🔀 Pair scores = Base ITS (0–100) minus Quote ITS (0–100). Now also shows the Williams Method (26-week Commercial COT Index) differential per pair, with an alignment check between the two methods. Same formulas used in Custom Pair Analyzer.</div>
 
   <!-- ═══════════ CUSTOM PAIR BUILDER ═══════════ -->
@@ -819,38 +874,31 @@
   <div id="pairs-status"></div>
   <div class="pairs-grid" id="pairs-grid"></div>
 </div>
+</div>
 
-<!-- ═══════════════ EXTREME SCANNER PAGE ═══════════════ -->
-<div class="page" id="page-extremes">
+<!-- ═══════════════ SIGNALS GROUP ═══════════════ -->
+<div class="page-group" id="pagegroup-signals">
+  <div class="sub-tabs">
+    <button class="sub-tab active" onclick="switchSub('signals','extremes',this)">🚨 Extreme Scanner</button>
+    <button class="sub-tab" onclick="switchSub('signals','divergence',this)">🔍 Divergence</button>
+  </div>
+<div class="subpage active" id="page-extremes">
   <div class="info-box">🚨 Historical percentile positioning. 90th+ = crowded long (reversal risk). 10th or below = crowded short (squeeze risk).</div>
   <div class="extremes-grid" id="extremes-grid"></div>
 </div>
-
-<!-- ═══════════════ DISAGGREGATED PAGE ═══════════════ -->
-<div class="page" id="page-disagg">
-  <div class="info-box">🔬 <strong>Disaggregated COT Report</strong> — Professional-grade breakdown. <strong>Asset Managers</strong> = real money (pension funds, sovereign wealth) — the true smart money. <strong>Leveraged Funds</strong> = hedge funds, trend followers — fast money. <strong>Dealer/Intermediary</strong> = banks booking the other side. Data: CFTC Disaggregated Futures report (separate API endpoint). ⚠️ Note: Disaggregated data covers commodities/metals well; forex uses Legacy data as fallback.</div>
-  <div class="tab-row">
-    <button class="tab-btn active" onclick="filterDisaggCategory('all',this)">All</button>
-    <button class="tab-btn" onclick="filterDisaggCategory('forex',this)">Forex</button>
-    <button class="tab-btn" onclick="filterDisaggCategory('metals',this)">Metals</button>
-  </div>
-  <div id="disagg-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;"></div>
-</div>
-
-<!-- ═══════════════ RELATIVE FLOW MATRIX PAGE ═══════════════ -->
-<div class="page" id="page-matrix">
-  <div class="info-box">🧮 <strong>Relative Currency Flow Matrix</strong> — Institutional-grade cross-currency comparison. Each cell shows the ITS differential (row vs column). <span style="color:var(--bull)">Green = row currency stronger</span>. <span style="color:var(--bear)">Red = row weaker</span>. Confidence % and probability estimate are shown per currency. Z-Score uses full available history.</div>
-  <div id="matrix-content" style="overflow-x:auto;"></div>
-</div>
-
-<!-- ═══════════════ DIVERGENCE PAGE ═══════════════ -->
-<div class="page" id="page-divergence">
+<div class="subpage" id="page-divergence">
   <div class="info-box">🔍 True COT divergence: Net position trend vs recent price momentum. Watch for: price new high + COT lower high = bearish divergence (and vice versa).</div>
   <div class="diverg-grid" id="diverg-grid"></div>
 </div>
+</div>
 
-<!-- ═══════════════ WILLIAMS vs ITS PAGE ═══════════════ -->
-<div class="page" id="page-williams">
+<!-- ═══════════════ WILLIAMS vs ITS GROUP ═══════════════ -->
+<div class="page-group" id="pagegroup-williams">
+  <div class="sub-tabs">
+    <button class="sub-tab active" onclick="switchSub('williams','williams',this)">📊 Comparison</button>
+    <button class="sub-tab" onclick="switchSub('williams','williamsMetals',this)">🥇 Metals Detail</button>
+  </div>
+<div class="subpage active" id="page-williams">
   <div class="info-box">📊 <strong>Williams Method</strong> uses the <strong>Commercial COT Index (26-week lookback)</strong> as the primary signal. Extremes ≥90 = Bullish, ≤10 = Bearish. Compare against your ITS score to see which method gives better signals for each market. Log your trades below to track which method outperforms over time.</div>
 
   <!-- COMPARISON TABLE -->
@@ -905,9 +953,7 @@
     </div>
   </div>
 </div>
-
-<!-- ═══════════════ WILLIAMS METALS ANALYSIS PAGE ═══════════════ -->
-<div class="page" id="page-williamsMetals">
+<div class="subpage" id="page-williamsMetals">
   <div class="info-box">🥇 <strong>Williams Method — Metals Focus.</strong> Larry Williams' approach uses the <strong>Commercial (hedger) COT Index over a strict 26-week lookback</strong> as the primary signal, applied here to Gold, Silver, Copper, Platinum, and Palladium. Commercials in metals are producers/refiners hedging supply — when their net position sits near the top of its 26-week range (index ≥90), it means they're covering shorts and expect prices to rise; near the bottom (≤10) means heavy fresh hedging and a bearish read. Between 10 and 90, Williams has no signal — stand aside.</div>
 
   <div class="section-title">Metals — Williams Method (26-Week Commercial COT Index)</div>
@@ -915,14 +961,46 @@
     <div class="empty-state" style="grid-column:1/-1"><div class="icon">🥇</div>Fetch COT data to see Williams Method metals analysis</div>
   </div>
 </div>
+</div>
 
-<!-- ═══════════════ SEASONAL BIAS PAGE ═══════════════ -->
-<div class="page" id="page-seasonal">
-  <div class="info-box">📅 <strong>Seasonal Bias — Metals.</strong> Historical month-by-month tendency based on multi-decade demand cycles (jewelry, industrial restocking, safe-haven flows). Blue-green = historically bullish, red = historically bearish. Current month is outlined in gold. This is a background bias only — always weigh current COT positioning and price structure first.</div>
-  <div id="seasonal-content">
-    <div class="empty-state"><div class="icon">📅</div>Loading seasonal data…</div>
+<!-- ═══════════════ NEWS PAGE ═══════════════ -->
+<div class="page" id="page-news">
+  <div class="info-box">📰 <strong>Economic Calendar — High Impact Events.</strong> Live weekly calendar of high-impact news releases. Times shown in your local timezone. Data refreshes when you click "Fetch COT Data" or "Refresh News" below. Use this alongside COT positioning to time entries around volatility, not into it.</div>
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+    <div class="tab-row" id="news-filter-row">
+      <button class="tab-btn active" onclick="filterNewsImpact('high',this)">🔴 High Impact</button>
+      <button class="tab-btn" onclick="filterNewsImpact('all',this)">All Impact Levels</button>
+    </div>
+    <button class="refresh-btn" style="padding:7px 16px;font-size:12.5px;" onclick="loadNewsCalendar(true)"><span id="news-refresh-icon">↻</span> Refresh News</button>
+  </div>
+  <div id="news-full-content">
+    <div class="empty-state"><div class="icon">📰</div>Loading this week's economic calendar…</div>
   </div>
 </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 <!-- LOG MODAL -->
 <div id="log-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center;">
@@ -1103,6 +1181,102 @@ async function fetchWithCORS(url){
     } catch(e){ failures.push(`${new URL(proxy(url)).hostname}: ${e.message}`); }
   }
   throw new Error('All CORS proxies failed — '+failures.join(' | '));
+}
+
+// ─── NEWS CALENDAR (this week's high-impact economic events) ─────────────────
+const NEWS_FEED_URL='https://nfs.faireconomy.media/ff_calendar_thisweek.json';
+let newsEvents=[]; // cached, sorted, upcoming-first
+let newsImpactFilter='high';
+
+async function loadNewsCalendar(force){
+  const widget=document.getElementById('news-dashboard-widget');
+  const full=document.getElementById('news-full-content');
+  if(newsEvents.length && !force) { renderNewsDashboardWidget(); renderNewsFullPage(); return; }
+  try{
+    const raw=await fetchWithCORS(NEWS_FEED_URL);
+    const now=new Date();
+    newsEvents=raw
+      .map(e=>({
+        title:e.title||e.event||'Untitled event',
+        country:(e.country||'').toUpperCase(),
+        impact:(e.impact||'Low'),
+        date:new Date(e.date),
+        forecast:e.forecast||'',
+        previous:e.previous||'',
+      }))
+      .filter(e=>!isNaN(e.date.getTime()))
+      .sort((a,b)=>a.date-b.date);
+    renderNewsDashboardWidget();
+    renderNewsFullPage();
+  }catch(err){
+    if(widget) widget.innerHTML=`<div class="empty-state" style="padding:16px;"><div class="icon">⚠️</div>Couldn't load news calendar (${err.message}). Try "Refresh News" on the News tab.</div>`;
+    if(full) full.innerHTML=`<div class="empty-state"><div class="icon">⚠️</div>Couldn't load the economic calendar: ${err.message}<br><br>This feed can be blocked by ad-blockers or network settings — try refreshing.</div>`;
+  }
+}
+
+function fmtNewsDay(d){
+  const now=new Date();
+  const isToday=d.toDateString()===now.toDateString();
+  const tmr=new Date(now); tmr.setDate(now.getDate()+1);
+  const isTmr=d.toDateString()===tmr.toDateString();
+  if(isToday) return 'Today';
+  if(isTmr) return 'Tomorrow';
+  return d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
+}
+function fmtNewsTime(d){ return d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}); }
+
+function newsRowHtml(e){
+  return `<div class="news-item">
+    <div class="news-day">${fmtNewsDay(e.date)}</div>
+    <div class="news-time">${fmtNewsTime(e.date)}</div>
+    <div class="news-flag">${e.country||'—'}</div>
+    <div class="news-title">${e.title}</div>
+    <div class="news-forecast">${e.forecast?('F: '+e.forecast):''}${e.previous?('  P: '+e.previous):''}</div>
+    <div class="news-impact ${e.impact}">${e.impact}</div>
+  </div>`;
+}
+
+function renderNewsDashboardWidget(){
+  const el=document.getElementById('news-dashboard-widget');
+  if(!el) return;
+  const now=new Date();
+  const upcoming=newsEvents.filter(e=>e.impact==='High' && e.date>=new Date(now-3600*1000)).slice(0,6);
+  if(!upcoming.length){
+    el.innerHTML=`<div class="empty-state" style="padding:16px;">No more high-impact events left this week.</div>`;
+    return;
+  }
+  el.innerHTML=`<div class="news-list-wrap">${upcoming.map(newsRowHtml).join('')}</div>`;
+}
+
+function filterNewsImpact(level,btn){
+  newsImpactFilter=level;
+  document.querySelectorAll('#news-filter-row .tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderNewsFullPage();
+}
+
+function renderNewsFullPage(){
+  const el=document.getElementById('news-full-content');
+  if(!el) return;
+  if(!newsEvents.length){
+    el.innerHTML=`<div class="empty-state"><div class="icon">📰</div>Loading this week's economic calendar…</div>`;
+    return;
+  }
+  const now=new Date();
+  const list=newsEvents.filter(e=> newsImpactFilter==='all' || e.impact==='High');
+  const upcoming=list.filter(e=>e.date>=new Date(now-3600*1000));
+  const past=list.filter(e=>e.date<new Date(now-3600*1000));
+  let html='';
+  if(upcoming.length){
+    html+=`<div class="section-title">Upcoming</div><div class="news-list-wrap" style="margin-bottom:20px;">${upcoming.map(newsRowHtml).join('')}</div>`;
+  }
+  if(past.length){
+    html+=`<div class="section-title">Already Released This Week</div><div class="news-list-wrap" style="opacity:.6;">${past.map(newsRowHtml).join('')}</div>`;
+  }
+  if(!html){
+    html=`<div class="empty-state"><div class="icon">📰</div>No ${newsImpactFilter==='high'?'high-impact ':''}events found for this week.</div>`;
+  }
+  el.innerHTML=html;
 }
 
 async function fetchMarket(market){
@@ -1460,6 +1634,8 @@ function renderSeasonalPage(){
   el.innerHTML=html;
 }
 
+const PAGE_GROUPS={markets:['markets','disagg','seasonal'],strength:['strength','matrix','pairs'],signals:['extremes','divergence'],williams:['williams','williamsMetals']};
+
 function goToMarketDetail(id){
   const marketsBtn=document.querySelector(".nav-tab[onclick*=\"'markets'\"]");
   switchPage('markets',marketsBtn);
@@ -1467,9 +1643,22 @@ function goToMarketDetail(id){
 }
 function switchPage(page,btn){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.page-group').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
-  document.getElementById('page-'+page).classList.add('active');
+  if(PAGE_GROUPS[page]){
+    document.getElementById('pagegroup-'+page).classList.add('active');
+  }else{
+    document.getElementById('page-'+page).classList.add('active');
+  }
   btn.classList.add('active'); activePage=page;
+  if(page==='news') loadNewsCalendar(false);
+}
+function switchSub(group,sub,btn){
+  const wrap=document.getElementById('pagegroup-'+group);
+  wrap.querySelectorAll('.subpage').forEach(p=>p.classList.remove('active'));
+  wrap.querySelectorAll('.sub-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+sub).classList.add('active');
+  btn.classList.add('active');
 }
 
 function showStatus(type,msg){
