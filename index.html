@@ -1526,7 +1526,7 @@ function renderWilliamsPage(){
   }
   const rows=MARKETS.filter(m=>allData[m.id]).map(m=>{
     const rows=allData[m.id];
-    const its=calcITS(rows,isMetals,m.id);
+    const its=calcITS(rows,m.cat==='metals',m.id);
     const itsLbl=itsLabel(its);
     const w=calcWilliamsIndex(rows,26);
     const wLbl=williamsLabel(w);
@@ -2290,6 +2290,7 @@ function calcMetalsITS(rows){
   const avgAbsCommWeekly=commChanges.length>0?commChanges.reduce((s,c)=>s+c,0)/commChanges.length:1;
   const denom=Math.max(avgAbsCommWeekly*4,1);
   const flow4Score=Math.max(0,Math.min(100,Math.round(50+(flow.w4/denom)*50)));
+  const cotmMetals=calcCOTM(rows,3,true);
   const cotmMetalsAdj=cotmMetals?Math.min(5,Math.max(-5,Math.round((cotmMetals.momentum/30)*5))):0;
   const flowAdj=Math.round((flow4Score-50)*0.10);
 
@@ -3799,6 +3800,7 @@ function renderDivergencePage(){
   const loaded=MARKETS.filter(m=>allData[m.id]&&allData[m.id].length>=8);
   grid.innerHTML=loaded.map(m=>{
     const rows=allData[m.id];
+    const isMetals=m.cat==='metals';
     const nets=rows.slice(0,12).map(r=>isMetals?getCommNet(r):getNet(r));
     const flow=getFlowChanges(rows);
     const recentWoW=nets[0]-nets[1];
