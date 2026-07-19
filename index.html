@@ -2824,7 +2824,6 @@ function showDetail(id){
   specEl.className='metric-val '+(specScore>20?'pos':specScore<-20?'neg':'neu');
 
   // Comm score
-  const commCi=calcCommIndex(rows);
   const commScore=commCi?Math.round((commCi.index-50)*2):0;
   const commEl=document.getElementById('d-comm');
   commEl.textContent=(commScore>=0?'+':'')+commScore;
