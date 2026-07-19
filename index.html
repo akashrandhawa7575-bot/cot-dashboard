@@ -2653,6 +2653,8 @@ function showDetail(id){
   panel.classList.add('visible');
   panel.scrollIntoView({behavior:'smooth',block:'nearest'});
   const m=MARKETS.find(x=>x.id===id), rows=allData[id];
+  const isMetals=m.cat==='metals';
+  const commCi=calcCommIndex(rows);
   const r=rows[0], r1=rows[1]||r;
   // For metals use commercial positions in the bar; for forex use spec positions
   const _specLong=parseFloat(r.noncomm_positions_long_all||0);
@@ -2669,7 +2671,6 @@ function showDetail(id){
   const nets=rows.map(ro=>getNet(ro));
   const ci=calcCotIndex(nets);
   const pct=calcPercentile(rows);
-  const isMetals=m.cat==='metals';
   const itsResult=calcITSFull(rows,isMetals,m.id);
   const its=itsResult.score;
   const itsLbl=itsLabel(its);
@@ -2766,7 +2767,6 @@ function showDetail(id){
   dNet.className='metric-val '+(primaryNet>=0?'pos':'neg');
 
   // COT Index — for metals display COMMERCIAL index as the primary gauge
-  const commCi=calcCommIndex(rows);
   const displayCi=isMetals?commCi:ci;
   // Update gauge title to show which group
   const gaugeTitle=document.querySelector('.cot-gauge-title');
