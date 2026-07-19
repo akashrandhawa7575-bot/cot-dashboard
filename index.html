@@ -2603,7 +2603,6 @@ function renderCards(){
     const ci=calcCotIndex(nets); // nets already uses correct getter above
     const cotIdx=ci?ci.index:null;
     const cotColor=cotIdx!==null?cotIndexColor(cotIdx):'#8ea38f';
-    const isMetals=m.cat==='metals';
     const its=calcITS(rows,isMetals,m.id);
     const itsLbl=itsLabel(its);
     const flow=getFlowChanges(rows);
