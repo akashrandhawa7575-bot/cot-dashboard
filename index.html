@@ -2892,9 +2892,13 @@ function showDetail(id){
   if(scTitle) scTitle.textContent=isMetals
     ? '🏭 Commercial (Hedgers) — PRIMARY SIGNAL for Metals'
     : '📈 Non-Commercial (Specs) — PRIMARY SIGNAL for Forex';
-  // Update spec box label
+  // Box 1 always holds Speculator/Non-Commercial data (sc-spec-*), Box 2 always
+  // holds Commercial data (sc-comm-*) — only the LABELS change per engine, to
+  // correctly mark which one is the primary signal without swapping the data.
   const scSpecLabel=document.querySelector('.sc-box:first-child .sc-label');
-  if(scSpecLabel) scSpecLabel.textContent=isMetals?'🏭 Commercial (Primary — Metals)':'📈 Speculator (Primary — Forex)';
+  const scCommLabel=document.querySelector('.sc-box:last-child .sc-label');
+  if(scSpecLabel) scSpecLabel.textContent=isMetals?'📈 Speculator (Secondary — Metals)':'📈 Speculator (Primary — Forex)';
+  if(scCommLabel) scCommLabel.textContent=isMetals?'🏭 Commercial (Primary — Metals)':'🏦 Commercial (Secondary — Forex)';
 
   // OI Trend
   const oiUp=oi>oi1, netUp=net>net1;
