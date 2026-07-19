@@ -1164,13 +1164,17 @@ async function fetchWithCORS(url){
   const proxies=[
     u=>u,
     u=>`https://corsproxy.io/?url=${encodeURIComponent(u)}`,
-    u=>`https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
     u=>`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+    u=>`https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+    u=>`https://thingproxy.freeboard.io/fetch/${u}`,
   ];
   const failures=[];
   for(const proxy of proxies){
     try{
-      const r=await fetch(proxy(url));
+      const controller=new AbortController();
+      const timeoutId=setTimeout(()=>controller.abort(),12000);
+      const r=await fetch(proxy(url),{signal:controller.signal});
+      clearTimeout(timeoutId);
       if(r.ok){
         const d=await r.json();
         if(Array.isArray(d)&&d.length>0) return d;
@@ -1181,6 +1185,24 @@ async function fetchWithCORS(url){
     } catch(e){ failures.push(`${new URL(proxy(url)).hostname}: ${e.message}`); }
   }
   throw new Error('All CORS proxies failed — '+failures.join(' | '));
+}
+
+// Runs `worker` over `items` with at most `limit` in flight at once — avoids
+// hammering the free CORS proxies with dozens of simultaneous requests, which
+// is what triggers their rate limits / 520-522 errors under burst load.
+async function runWithConcurrency(items, limit, worker){
+  const results=new Array(items.length);
+  let idx=0;
+  async function runNext(){
+    while(idx<items.length){
+      const current=idx++;
+      try{ results[current]={status:'fulfilled',value:await worker(items[current])}; }
+      catch(err){ results[current]={status:'rejected',reason:err}; }
+    }
+  }
+  const runners=Array.from({length:Math.min(limit,items.length)},()=>runNext());
+  await Promise.all(runners);
+  return results;
 }
 
 // ─── NEWS CALENDAR (this week's high-impact economic events) ─────────────────
@@ -1298,10 +1320,11 @@ async function loadData(){
   showStatus('loading','Fetching COT data from CFTC (trying direct + CORS proxies)…');
   allData={}; disaggData={};
   try{
-    // Fetch Legacy and Disaggregated in parallel
+    // Fetch Legacy and Disaggregated with limited concurrency (avoids
+    // triggering rate limits on the free CORS proxies from burst traffic)
     const [legacyResults, disaggResults]=await Promise.all([
-      Promise.allSettled(MARKETS.map(m=>fetchMarket(m).then(rows=>({id:m.id,rows})))),
-      Promise.allSettled(DISAGG_MARKETS.map(m=>fetchDisaggMarket(m).then(rows=>({id:m.id,rows}))))
+      runWithConcurrency(MARKETS, 4, m=>fetchMarket(m).then(rows=>({id:m.id,rows}))),
+      runWithConcurrency(DISAGG_MARKETS, 4, m=>fetchDisaggMarket(m).then(rows=>({id:m.id,rows})))
     ]);
     let loaded=0, firstError=null;
     legacyResults.forEach(r=>{
