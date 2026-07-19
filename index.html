@@ -1526,7 +1526,6 @@ function renderWilliamsPage(){
   }
   const rows=MARKETS.filter(m=>allData[m.id]).map(m=>{
     const rows=allData[m.id];
-    const isMetals=m.cat==='metals';
     const its=calcITS(rows,isMetals,m.id);
     const itsLbl=itsLabel(its);
     const w=calcWilliamsIndex(rows,26);
@@ -1679,9 +1678,10 @@ function fmtChange(n){ return (n>=0?'+':'')+fmt(n); }
 
 // Z-SCORE: How many standard deviations is current net from historical mean?
 // Uses full data history. |z|>2 = statistically extreme.
-function calcZScore(rows){
+function calcZScore(rows, isMetals=false){
   if(!rows||rows.length<10) return null;
-  const nets=rows.map(r=>getNet(r));
+  // Z-Score on the PRIMARY signal for each market type
+  const nets=rows.map(r=>isMetals?getCommNet(r):getNet(r));
   const mean=nets.reduce((s,n)=>s+n,0)/nets.length;
   const variance=nets.reduce((s,n)=>s+(n-mean)**2,0)/nets.length;
   const std=Math.sqrt(variance);
@@ -1690,10 +1690,10 @@ function calcZScore(rows){
 }
 
 // NET AS % OF OPEN INTEREST — removes market size distortion
-function calcNetPctOI(rows){
+function calcNetPctOI(rows, isMetals=false){
   if(!rows||rows.length<1) return null;
   const r=rows[0];
-  const net=getNet(r);
+  const net=isMetals?getCommNet(r):getNet(r);
   const oi=parseFloat(r.open_interest_all||0);
   if(!oi) return null;
   return parseFloat(((net/oi)*100).toFixed(1));
@@ -1701,9 +1701,10 @@ function calcNetPctOI(rows){
 
 // FLOW PERSISTENCE: How many consecutive weeks has positioning moved in same direction?
 // 8+ weeks = very strong institutional commitment
-function calcFlowPersistence(rows){
+function calcFlowPersistence(rows, isMetals=false){
   if(!rows||rows.length<3) return {streak:0,dir:'none'};
-  const nets=rows.map(r=>getNet(r));
+  // Metals: track commercial flow persistence (they ARE the signal for metals)
+  const nets=rows.map(r=>isMetals?getCommNet(r):getNet(r));
   const changes=[];
   for(let i=0;i<nets.length-1;i++) changes.push(nets[i]-nets[i+1]); // week[0]-week[1]=recent change
   // changes[0] = most recent WoW change
@@ -1730,9 +1731,9 @@ function persistenceLabel(p){
 
 // POSITION ACCELERATION: second derivative — is buying/selling speeding up or slowing down?
 // Returns: positive = accelerating, negative = decelerating
-function calcAcceleration(rows){
+function calcAcceleration(rows, isMetals=false){
   if(!rows||rows.length<4) return null;
-  const nets=rows.map(r=>getNet(r));
+  const nets=rows.map(r=>isMetals?getCommNet(r):getNet(r));
   // week 0→1 = most recent change, week 1→2 = prior change, week 2→3 = prior prior
   const c0=nets[0]-nets[1]; // most recent WoW
   const c1=nets[1]-nets[2]; // prior WoW
@@ -1758,12 +1759,13 @@ function calcConfidence(rows, isMetals, marketId){
   if(!rows||rows.length<10) return null;
   const its=calcITSFull(rows,isMetals,marketId);
   const itsScore=its.score;
-  const flow=getFlowChanges(rows);
-  const persist=calcFlowPersistence(rows);
-  const accel=calcAcceleration(rows);
-  const z=calcZScore(rows);
-  const cotm=calcCOTM(rows,3);
-  const crowd=calcCrowdingRatio(rows);
+  // Use the correct flow, persistence, acceleration per market type
+  const flow=isMetals?getCommFlowChanges(rows):getFlowChanges(rows);
+  const persist=calcFlowPersistence(rows,isMetals);
+  const accel=calcAcceleration(rows,isMetals);
+  const z=calcZScore(rows,isMetals);
+  const cotm=calcCOTM(rows,3,isMetals);
+  const crowd=calcCrowdingRatio(rows,isMetals);
   const nets=rows.map(r=>getNet(r));
   const ci=calcCotIndex(nets);
   const netPctOI=calcNetPctOI(rows);
@@ -1864,12 +1866,12 @@ function renderMatrixPage(){
     const rows=allData[id];
     const its=calcITS(rows,false,id);
     const itsLbl=itsLabel(its);
-    const z=calcZScore(rows);
-    const persist=calcFlowPersistence(rows);
+    const z=calcZScore(rows,false);
+    const persist=calcFlowPersistence(rows,false);
     const persLbl=persistenceLabel(persist);
-    const accel=calcAcceleration(rows);
+    const accel=calcAcceleration(rows,false);
     const accelLbl=accelLabel(accel);
-    const netPct=calcNetPctOI(rows);
+    const netPct=calcNetPctOI(rows,false);
     const conf=calcConfidence(rows,false,id);
 
     html+=`<div class="currency-stat-card">
@@ -1964,6 +1966,20 @@ function cotIndexZone(idx){
 }
 
 // ─── FLOW CHANGES ──────────────────────────────────────────────────────────────
+// Returns net flow changes using COMMERCIAL positions (for metals)
+function getCommFlowChanges(rows){
+  if(!rows||rows.length<2) return {wow:0,w4:0,w8:0,w12:0};
+  const nets=rows.map(r=>getCommNet(r));
+  const n0=nets[0];
+  return {
+    wow: n0-(nets[1]||n0),
+    w4:  n0-(nets[Math.min(4,nets.length-1)]||n0),
+    w8:  n0-(nets[Math.min(8,nets.length-1)]||n0),
+    w12: n0-(nets[Math.min(12,nets.length-1)]||n0),
+  };
+}
+
+// Returns net flow changes using NON-COMMERCIAL positions (for forex)
 function getFlowChanges(rows){
   if(!rows||rows.length<2) return {wow:0,w4:0,w8:0,w12:0};
   const nets=rows.map(r=>getNet(r));
@@ -2083,11 +2099,13 @@ function seasonalNote(id){
 }
 
 // ─── OI TREND ─────────────────────────────────────────────────────────────────
-function getOIScore(rows){
+function getOIScore(rows, isMetals){
   if(!rows||rows.length<5) return 50;
   const oi0=parseFloat(rows[0].open_interest_all||0);
   const oi4=parseFloat(rows[4].open_interest_all||0);
-  const net0=getNet(rows[0]), net4=getNet(rows[4]);
+  // Metals: use commercial net (they drive price); Forex: use spec net
+  const net0=isMetals?getCommNet(rows[0]):getNet(rows[0]);
+  const net4=isMetals?getCommNet(rows[4]):getNet(rows[4]);
   const oiUp=oi0>oi4, netUp=net0>net4;
   // Compute magnitude: OI % change over 4 weeks
   const oiChgPct=oi4>0?Math.abs((oi0-oi4)/oi4)*100:0;
@@ -2201,7 +2219,7 @@ function calcForexITS(rows, marketId){
   const ssci=calcSmallSpecIndex(rows);
   let ssAdj=0;
   if(ssci){ if(ssci.index>=80)ssAdj=-8; else if(ssci.index>=65)ssAdj=-4; else if(ssci.index<=20)ssAdj=+8; else if(ssci.index<=35)ssAdj=+4; }
-  const cotm=calcCOTM(rows,3);
+  const cotm=calcCOTM(rows,3,false);
   const accelBonus=cotm?Math.min(8,Math.max(-8,Math.round((cotm.momentum/30)*8))):0;
 
   const score=Math.max(0,Math.min(100,Math.round(
@@ -2256,24 +2274,27 @@ function calcMetalsITS(rows){
   }
 
   // 3. OPEN INTEREST TREND (25%) — graduated with magnitude
-  const oiScore=getOIScore(rows);
-  const crowd=calcCrowdingRatio(rows);
+  const oiScore=getOIScore(rows,true); // Metals: OI vs COMMERCIAL net
+  const crowd=calcCrowdingRatio(rows,true); // Metals: COMMERCIAL crowding ratio
   const oiCrowdAdj=crowd&&Math.abs(crowd.ratio)>=35?-8:0;
 
   // 4. NON-COMMERCIAL INDEX (15%) — trend-following specs, secondary
   const nonCommScore=ci.index;
 
-  // Flow minor adjustment
-  const flow=getFlowChanges(rows);
-  const weeklyChanges=getWeeklyChanges(rows);
-  const avgAbsWeekly=weeklyChanges.length>0
-    ? weeklyChanges.reduce((s,c)=>s+Math.abs(c),0)/weeklyChanges.length:1;
-  const denom=Math.max(avgAbsWeekly*4,1);
+  // Commercial flow adjustment — use COMMERCIAL flow changes for metals
+  // (Commercial flow = hedger activity = the real signal for Gold/Silver/Copper)
+  const flow=getCommFlowChanges(rows);
+  const commNets=rows.map(r=>getCommNet(r));
+  const commChanges=[];
+  for(let i=0;i<commNets.length-1;i++) commChanges.push(Math.abs(commNets[i]-commNets[i+1]));
+  const avgAbsCommWeekly=commChanges.length>0?commChanges.reduce((s,c)=>s+c,0)/commChanges.length:1;
+  const denom=Math.max(avgAbsCommWeekly*4,1);
   const flow4Score=Math.max(0,Math.min(100,Math.round(50+(flow.w4/denom)*50)));
+  const cotmMetalsAdj=cotmMetals?Math.min(5,Math.max(-5,Math.round((cotmMetals.momentum/30)*5))):0;
   const flowAdj=Math.round((flow4Score-50)*0.10);
 
   const score=Math.max(0,Math.min(100,Math.round(
-    commScore*0.35 + commDivScore*0.25 + (oiScore+oiCrowdAdj)*0.25 + nonCommScore*0.15 + flowAdj
+    commScore*0.35 + commDivScore*0.25 + (oiScore+oiCrowdAdj)*0.25 + nonCommScore*0.15 + flowAdj + cotmMetalsAdj
   )));
 
   return {
@@ -2330,9 +2351,9 @@ function calcUSDScore(useITS){
   return count>0?Math.round(-total/count):0;
 }
 
-function calcPercentile(rows){
+function calcPercentile(rows, isMetals=false){
   if(!rows||rows.length<2) return null;
-  const nets=rows.map(r=>getNet(r));
+  const nets=rows.map(r=>isMetals?getCommNet(r):getNet(r));
   const current=nets[0], below=nets.filter(n=>n<current).length;
   return Math.round((below/nets.length)*100);
 }
@@ -2340,16 +2361,18 @@ function calcPercentile(rows){
 // ─── COT-M: COT INDEX MOMENTUM (Rate of Change) ───────────────────────────────
 // Measures how fast the COT Index is moving — key for entry timing
 // A fast-rising COT-M from a low base = best entry; stalling at extreme = exit warning
-function calcCOTM(rows, lookback=3){
+function calcCOTM(rows, lookback=3, isMetals=false){
   if(!rows||rows.length<lookback+2) return null;
-  const nets=rows.map(r=>getNet(r));
+  // Metals: momentum of COMMERCIAL index; Forex: momentum of SPEC index
+  const netFn=isMetals?getCommNet:getNet;
+  const nets=rows.map(r=>netFn(r));
   const ci=calcCotIndex(nets);
   if(!ci) return null;
   // Compute COT Index for each week
   function weekCotIndex(weekOffset){
     const slice=rows.slice(weekOffset);
     if(slice.length<2) return null;
-    const sliceNets=slice.map(r=>getNet(r));
+    const sliceNets=slice.map(r=>netFn(r));
     const c=calcCotIndex(sliceNets);
     return c?c.index:null;
   }
@@ -2374,10 +2397,11 @@ const var_muted='#93a094';
 // ─── CROWDING RATIO: Net as % of Open Interest ─────────────────────────────────
 // Absolute positioning size relative to total market — more meaningful than raw contracts
 // >30% = dangerously crowded; <10% = light positioning room to run
-function calcCrowdingRatio(rows){
+function calcCrowdingRatio(rows, isMetals=false){
   if(!rows||rows.length<1) return null;
   const r=rows[0];
-  const net=getNet(r);
+  // Metals: use commercial net; Forex: use spec net — each is the "driver" for that market
+  const net=isMetals?getCommNet(r):getNet(r);
   const oi=parseFloat(r.open_interest_all||0);
   if(oi===0) return null;
   const ratio=(net/oi)*100;
@@ -2569,9 +2593,14 @@ function renderCards(){
   }
   show.forEach(m=>{
     const rows=allData[m.id], latest=rows[0], prev=rows[1]||rows[0];
-    const net=getNet(latest), net1=getNet(prev), sig=getSignal(net,net1,rows);
-    const nets=rows.map(r=>getNet(r));
-    const ci=calcCotIndex(nets);
+    const isMetals=m.cat==='metals';
+    // Primary net: commercial for metals (hedger signal), non-commercial for forex (spec signal)
+    const net=isMetals?getCommNet(latest):getNet(latest);
+    const net1=isMetals?getCommNet(prev):getNet(prev);
+    const sig=getSignal(net,net1,rows);
+    const nets=rows.map(r=>isMetals?getCommNet(r):getNet(r));
+    // COT Index: commercial for metals, spec for forex
+    const ci=calcCotIndex(nets); // nets already uses correct getter above
     const cotIdx=ci?ci.index:null;
     const cotColor=cotIdx!==null?cotIndexColor(cotIdx):'#8ea38f';
     const isMetals=m.cat==='metals';
@@ -2586,9 +2615,10 @@ function renderCards(){
         <div><div class="flow-card-name">${m.name}</div><div class="flow-card-sub">${m.cat.toUpperCase()}</div></div>
         <div class="signal-pill ${sig}">${signalLabel(sig)}</div>
       </div>
+      <div style="font-family:var(--mono);font-size:8px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:2px;">${isMetals?'COMMERCIAL NET':'SPEC NET'}</div>
       <div class="flow-net ${net>=0?'pos':'neg'}">${net>=0?'+':''}${fmt(net)}</div>
       ${cotIdx!==null?`<div class="cot-idx-row">
-        <span class="cot-idx-label">COT</span>
+        <span class="cot-idx-label" title="${isMetals?'Commercial COT Index':'Spec COT Index'}">${isMetals?'COM':'COT'}</span>
         <div class="cot-idx-bar"><div class="cot-idx-fill" style="width:${cotIdx}%;background:${cotColor}"></div></div>
         <span class="cot-idx-val" style="color:${cotColor}">${cotIdx}</span>
       </div>`:''}
@@ -2624,8 +2654,13 @@ function showDetail(id){
   panel.scrollIntoView({behavior:'smooth',block:'nearest'});
   const m=MARKETS.find(x=>x.id===id), rows=allData[id];
   const r=rows[0], r1=rows[1]||r;
-  const long=parseFloat(r.noncomm_positions_long_all||0);
-  const short=parseFloat(r.noncomm_positions_short_all||0);
+  // For metals use commercial positions in the bar; for forex use spec positions
+  const _specLong=parseFloat(r.noncomm_positions_long_all||0);
+  const _specShort=parseFloat(r.noncomm_positions_short_all||0);
+  const _commLong=parseFloat(r.comm_positions_long_all||0);
+  const _commShort=parseFloat(r.comm_positions_short_all||0);
+  const long=isMetals?_commLong:_specLong;
+  const short=isMetals?_commShort:_specShort;
   const total=long+short||1;
   const longPct=(long/total*100).toFixed(1), shortPct=(short/total*100).toFixed(1);
   const net=getNet(r), net1=getNet(r1), sig=getSignal(net,net1,rows);
@@ -2677,8 +2712,8 @@ function showDetail(id){
     const divColor=div>=20?'#6f9e5c':div<=-20?'#c0674a':'#c9a35f';
     document.getElementById('comm-div-val').textContent=`${div>=0?'+':''}${div.toFixed(0)} pts`;
     document.getElementById('comm-div-val').style.color=divColor;
-    const commCiDisp=calcCommIndex(rows);
-    const specCiDisp=calcCotIndex(rows.map(r=>getNet(r)));
+    const commCiDisp=commCi;
+    const specCiDisp=ci;
     let divDesc='';
     if(div>=30) divDesc=`🔥 PREMIUM SETUP: Commercials (${commCiDisp?commCiDisp.index:'—'}) far more bullish than specs (${specCiDisp?specCiDisp.index:'—'}). Smart money aggressively reducing shorts while specs remain pessimistic. Highest-conviction bullish metals setup.`;
     else if(div>=15) divDesc=`📈 Bullish divergence building: Commercials (${commCiDisp?commCiDisp.index:'—'}) turning more positive than specs (${specCiDisp?specCiDisp.index:'—'}). Watch for spec capitulation to trigger the next leg up.`;
@@ -2690,16 +2725,19 @@ function showDetail(id){
     commDivWrap.style.display='none';
   }
 
-  // Flow changes
-  const flow=getFlowChanges(rows);
+  // Flow changes — use COMMERCIAL flow for metals, SPEC flow for forex
+  const flow=isMetals?getCommFlowChanges(rows):getFlowChanges(rows);
   const fcColor=(v)=>v>=0?'#6f9e5c':'#c0674a';
+  // Update flow section title to clarify which group is shown
+  const fcTitle=document.querySelector('.flow-change-title');
+  if(fcTitle) fcTitle.textContent=isMetals?'Commercial Flow & Momentum (Hedger Activity)':'Non-Commercial Flow & Momentum (Speculator Activity)';
   document.getElementById('fc-wow').textContent=fmtChange(flow.wow);
   document.getElementById('fc-wow').style.color=fcColor(flow.wow);
-  document.getElementById('fc-wow-pct').textContent=flow.wow>=0?'▲ Adding longs':'▼ Cutting longs';
+  document.getElementById('fc-wow-pct').textContent=flow.wow>=0?(isMetals?'▲ Commercials reducing shorts':'▲ Specs adding longs'):(isMetals?'▼ Commercials adding shorts':'▼ Specs cutting longs');
   document.getElementById('fc-wow-pct').style.color=fcColor(flow.wow);
   document.getElementById('fc-4w').textContent=fmtChange(flow.w4);
   document.getElementById('fc-4w').style.color=fcColor(flow.w4);
-  document.getElementById('fc-4w-dir').textContent=flow.w4>=0?'▲ 4-week bull flow':'▼ 4-week bear flow';
+  document.getElementById('fc-4w-dir').textContent=flow.w4>=0?(isMetals?'▲ 4-week bullish hedger flow':'▲ 4-week bull spec flow'):(isMetals?'▼ 4-week bearish hedger flow':'▼ 4-week bear spec flow');
   document.getElementById('fc-4w-dir').style.color=fcColor(flow.w4);
   document.getElementById('fc-8w').textContent=fmtChange(flow.w8);
   document.getElementById('fc-8w').style.color=fcColor(flow.w8);
@@ -2715,13 +2753,26 @@ function showDetail(id){
   const pill=document.getElementById('d-signal-pill');
   pill.textContent=signalLabel(sig); pill.className=`signal-pill ${sig}`;
 
-  // Metrics
-  const dNet=document.getElementById('d-net');
-  dNet.textContent=(net>=0?'+':'')+fmtFull(Math.round(net));
-  dNet.className='metric-val '+(net>=0?'pos':'neg');
+  // Update metric label text based on engine type (Metals = Comm, Forex = Spec)
+  const dNetLabel=document.querySelector('#detail-panel .metric-box:nth-child(1) .metric-sub');
+  if(dNetLabel) dNetLabel.textContent=isMetals?'Commercial (hedgers)':'Non-commercial (specs)';
+  const dNetTitle=document.querySelector('#detail-panel .metric-box:nth-child(1) .metric-label');
+  if(dNetTitle) dNetTitle.textContent=isMetals?'Comm Net':'Spec Net';
 
-  if(ci){
-    const idx=ci.index, color=cotIndexColor(idx), zone=cotIndexZone(idx);
+  // Metrics — show primary net per engine type
+  const primaryNet=isMetals?commNet:net;
+  const dNet=document.getElementById('d-net');
+  dNet.textContent=(primaryNet>=0?'+':'')+fmtFull(Math.round(primaryNet));
+  dNet.className='metric-val '+(primaryNet>=0?'pos':'neg');
+
+  // COT Index — for metals display COMMERCIAL index as the primary gauge
+  const commCi=calcCommIndex(rows);
+  const displayCi=isMetals?commCi:ci;
+  // Update gauge title to show which group
+  const gaugeTitle=document.querySelector('.cot-gauge-title');
+  if(gaugeTitle) gaugeTitle.textContent=isMetals?'COMMERCIAL COT INDEX (52-WK RANGE) — Primary for Metals':'SPEC COT INDEX (52-WEEK RANGE) — Primary for Forex';
+  if(displayCi){
+    const idx=displayCi.index, color=cotIndexColor(idx), zone=cotIndexZone(idx);
     document.getElementById('d-cotidx').textContent=idx;
     document.getElementById('d-cotidx').style.color=color;
     document.getElementById('d-gauge-val').textContent=idx;
@@ -2730,6 +2781,9 @@ function showDetail(id){
     document.getElementById('d-zone').textContent=zone.label;
     document.getElementById('d-zone').style.color=zone.color;
   }
+  // Keep d-cotidx sub-label updated
+  const cotIdxSub=document.querySelector('#detail-panel .metric-box:nth-child(2) .metric-sub');
+  if(cotIdxSub) cotIdxSub.textContent=isMetals?'Commercial 52-wk':'Spec 52-week range';
 
   document.getElementById('d-its').textContent=its+' — '+itsLbl.text;
   document.getElementById('d-its').style.color=itsLbl.color;
@@ -2737,8 +2791,8 @@ function showDetail(id){
   document.getElementById('d-oi').textContent=fmt(oi);
   document.getElementById('d-oi-chg').textContent=(oiChg>=0?'▲ +':' ▼ ')+fmt(oiChg)+' vs last week';
 
-  // COT-M: Momentum of the COT Index
-  const cotm=calcCOTM(rows,3);
+  // COT-M: Metals = commercial momentum, Forex = spec momentum
+  const cotm=calcCOTM(rows,3,isMetals);
   const cotmLbl=cotmLabel(cotm);
   const cotmEl=document.getElementById('d-cotm');
   cotmEl.textContent=cotm?`${cotm.momentum>=0?'+':''}${cotm.momentum}`:'-';
@@ -2750,11 +2804,11 @@ function showDetail(id){
   document.getElementById('d-cotm-bar').style.width=cotmBarPct+'%';
   document.getElementById('d-cotm-bar').style.background=cotmLbl.color;
   document.getElementById('d-cotm-desc').innerHTML=cotm
-    ?`COT Index moved <strong style="color:${cotmLbl.color}">${cotm.momentum>=0?'+':''}${cotm.momentum} pts</strong> in ${cotm.lookback} weeks (${cotm.past} → ${cotm.now}). ${cotmLbl.text}.`
+    ?`${isMetals?'Commercial':'Spec'} COT Index moved <strong style="color:${cotmLbl.color}">${cotm.momentum>=0?'+':''}${cotm.momentum} pts</strong> in ${cotm.lookback} weeks (${cotm.past} → ${cotm.now}). ${cotmLbl.text}.`
     :'Not enough data for momentum calculation.';
 
-  // Crowding Ratio: Net as % of OI
-  const crowd=calcCrowdingRatio(rows);
+  // Crowding Ratio — commercial net for metals, spec net for forex
+  const crowd=calcCrowdingRatio(rows,isMetals);
   const crowdLbl=crowd?crowdingLabel(crowd.ratio):{text:'N/A',color:var_muted};
   const crowdPctEl=document.getElementById('d-crowd-pct');
   crowdPctEl.textContent=crowd?`${crowd.ratio>=0?'+':''}${crowd.ratio}%`:'-';
@@ -2811,6 +2865,14 @@ function showDetail(id){
     }
   }
   document.getElementById('sc-verdict').innerHTML=verdict;
+  // Update the spec-vs-comm section title dynamically
+  const scTitle=document.querySelector('.spec-comm-title');
+  if(scTitle) scTitle.textContent=isMetals
+    ? '🏭 Commercial (Hedgers) — PRIMARY SIGNAL for Metals'
+    : '📈 Non-Commercial (Specs) — PRIMARY SIGNAL for Forex';
+  // Update spec box label
+  const scSpecLabel=document.querySelector('.sc-box:first-child .sc-label');
+  if(scSpecLabel) scSpecLabel.textContent=isMetals?'🏭 Commercial (Primary — Metals)':'📈 Speculator (Primary — Forex)';
 
   // OI Trend
   const oiUp=oi>oi1, netUp=net>net1;
@@ -2823,12 +2885,15 @@ function showDetail(id){
   document.getElementById('d-oi-trend').style.color=oiUp&&netUp?'#6f9e5c':oiUp&&!netUp?'#c0674a':'#c9a35f';
   document.getElementById('d-oi-interp').textContent=oiDesc;
 
+  // Update bar label to show which group
+  const posBarLabel=document.querySelector('.pos-bar-label');
+  if(posBarLabel) posBarLabel.textContent=isMetals?'Commercial: Long vs Short (Hedger Positioning)':'Non-Commercial: Long vs Short (Speculator Positioning)';
   document.getElementById('pb-long').style.width=longPct+'%';
   document.getElementById('pb-long').textContent=longPct+'%';
   document.getElementById('pb-short').style.width=shortPct+'%';
   document.getElementById('pb-short').textContent=shortPct+'%';
 
-  drawChart(rows);
+  drawChart(rows,isMetals);
   document.getElementById('d-insights').innerHTML=buildInsights(m,r,net,flow,sig,commNet,ci,pct,its,itsLbl,isMetals);
 
   // ── WILLIAMS ANALYSIS in detail panel ──
@@ -2882,12 +2947,12 @@ function showDetail(id){
     document.getElementById('detail-panel').appendChild(instEl);
   }
 
-  const z=calcZScore(rows);
-  const persist=calcFlowPersistence(rows);
+  const z=calcZScore(rows,isMetals);
+  const persist=calcFlowPersistence(rows,isMetals);
   const persLbl=persistenceLabel(persist);
-  const accel=calcAcceleration(rows);
+  const accel=calcAcceleration(rows,isMetals);
   const accelLbl=accelLabel(accel);
-  const netPct=calcNetPctOI(rows);
+  const netPct=calcNetPctOI(rows,isMetals);
 
   const zColor=z?Math.abs(z.z)>=2.5?'#c0674a':Math.abs(z.z)>=1.5?'#c9a35f':'#a8cf9e':var_muted;
   const netPctColor=netPct!==null?Math.abs(netPct)>=35?'#c0674a':Math.abs(netPct)>=20?'#c9a35f':'#a8cf9e':var_muted;
@@ -3166,7 +3231,7 @@ function renderDisaggPage(){
 // ─── CHART (Lightweight Charts) ────────────────────────────────────────────────
 let netChartInstance=null, netChartSeries=null, netChartPoints=[];
 
-function drawChart(rows){
+function drawChart(rows, isMetals=false){
   const container=document.getElementById('net-chart');
   if(!container||typeof LightweightCharts==='undefined') return;
   const display=rows.slice(0,12);
@@ -3736,7 +3801,7 @@ function renderDivergencePage(){
   const loaded=MARKETS.filter(m=>allData[m.id]&&allData[m.id].length>=8);
   grid.innerHTML=loaded.map(m=>{
     const rows=allData[m.id];
-    const nets=rows.slice(0,12).map(r=>getNet(r));
+    const nets=rows.slice(0,12).map(r=>isMetals?getCommNet(r):getNet(r));
     const flow=getFlowChanges(rows);
     const recentWoW=nets[0]-nets[1];
     const prevWoW=nets[1]-nets[2];
