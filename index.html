@@ -13,6 +13,7 @@
     --text:#e6e8e6;--muted:#93a094;--subtle:#1e211e;
     --mono:'JetBrains Mono',monospace;--sans:'Inter',sans-serif;
     --gold:#c9a35f;--purple:#9a8fae;--cyan:#6fa89a;
+    --selected-bg:#1b2921;
     --line-height:1.7;
   }
   body.light-theme{
@@ -21,6 +22,7 @@
     --accent:#4f7f53;--bull:#4f7f53;--bear:#a1583a;--neutral:#9c7c3c;
     --text:#1c211d;--muted:#63715f;--subtle:#eef1ec;
     --gold:#9c7c3c;--purple:#6f6386;--cyan:#3f7568;
+    --selected-bg:#e3ede3;
   }
   body.light-theme .flow-card,body.light-theme .pair-card,body.light-theme .disagg-card,
   body.light-theme .extreme-card,body.light-theme .diverg-card,body.light-theme .currency-stat-card,
@@ -134,7 +136,7 @@
   .flow-card.bear::before{background:var(--bear);}
   .flow-card.neutral::before{background:var(--neutral);}
   .flow-card:hover{border-color:var(--accent);transform:translateY(-1px);}
-  .flow-card.selected{border-color:var(--accent);background:#1b2921;}
+  .flow-card.selected{border-color:var(--accent);background:var(--selected-bg);}
   .flow-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;}
   .flow-card-name{font-weight:700;font-size:13px;}
   .flow-card-sub{font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:1px;}
@@ -147,14 +149,14 @@
   .flow-net.neg{color:var(--bear);}
   /* momentum mini display */
   .momentum-mini{display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;margin-top:6px;}
-  .mom-cell{background:var(--subtle);border-radius:3px;padding:3px 4px;text-align:center;}
-  .mom-cell-label{font-family:var(--mono);font-size:7px;color:var(--muted);}
-  .mom-cell-val{font-family:var(--mono);font-size:9px;font-weight:700;}
+  .mom-cell{background:var(--subtle);border-radius:3px;padding:4px 4px;text-align:center;}
+  .mom-cell-label{font-family:var(--mono);font-size:8px;color:var(--muted);font-weight:600;}
+  .mom-cell-val{font-family:var(--mono);font-size:10px;font-weight:700;}
   .cot-idx-row{display:flex;align-items:center;gap:6px;margin-bottom:3px;}
-  .cot-idx-label{font-family:var(--mono);font-size:8px;color:var(--muted);}
+  .cot-idx-label{font-family:var(--mono);font-size:9px;color:var(--muted);font-weight:600;}
   .cot-idx-bar{flex:1;height:4px;background:var(--subtle);border-radius:2px;overflow:hidden;}
   .cot-idx-fill{height:100%;border-radius:2px;}
-  .cot-idx-val{font-family:var(--mono);font-size:9px;font-weight:700;min-width:22px;text-align:right;}
+  .cot-idx-val{font-family:var(--mono);font-size:10px;font-weight:700;min-width:22px;text-align:right;}
 
   /* DETAIL PANEL */
   #detail-panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:22px;margin-bottom:24px;display:none;}
@@ -518,10 +520,10 @@
   .outcome-pending{background:rgba(201,163,95,.15);color:#c9a35f;font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;}
   /* WILLIAMS MINI on cards */
   .will-mini{display:flex;align-items:center;gap:6px;margin-top:4px;}
-  .will-mini-label{font-family:var(--mono);font-size:8px;color:var(--muted);}
+  .will-mini-label{font-family:var(--mono);font-size:9px;color:var(--muted);font-weight:600;}
   .will-mini-bar{flex:1;height:4px;background:var(--subtle);border-radius:2px;overflow:hidden;}
   .will-mini-fill{height:100%;border-radius:2px;}
-  .will-mini-val{font-family:var(--mono);font-size:9px;font-weight:700;min-width:22px;text-align:right;}
+  .will-mini-val{font-family:var(--mono);font-size:10px;font-weight:700;min-width:22px;text-align:right;}
 </style>
 </head>
 <body>
@@ -3355,29 +3357,36 @@ function renderStrengthPage(){
     </div>`;
   }).join('');
 
-  // Pairs
+  // Pairs — ALL canonical forex pairs, ranked by ITS differential strength (strongest edge on top)
   const pairsEl=document.getElementById('strength-pairs');
-  const top=scores.slice(0,3), bottom=scores.slice(-3).reverse();
-  let pairHtml='', count=0;
-  top.forEach(strong=>{
-    bottom.forEach(weak=>{
-      if(strong.id===weak.id||count>=6) return;
-      const diff=strong.score-weak.score;
-      if(Math.abs(diff)<20) return;
-      const color=strong.score>0?'#6f9e5c':'#c0674a';
-      const verdict=diff>100?'🔥 Very Strong':diff>60?'✅ Strong':'👍 Moderate';
-      pairHtml+=`<div style="background:var(--subtle);border-radius:8px;padding:10px 12px;margin-bottom:8px;">
+  const scoreMap={};
+  scores.forEach(s=>{scoreMap[s.id]=s.score;});
+  const allPairs=FOREX_PAIRS
+    .filter(([base,quote])=>scoreMap[base]!==undefined&&scoreMap[quote]!==undefined)
+    .map(([base,quote])=>({base,quote,diff:scoreMap[base]-scoreMap[quote]}))
+    .sort((a,b)=>Math.abs(b.diff)-Math.abs(a.diff));
+
+  let pairHtml='';
+  if(allPairs.length===0){
+    pairHtml=`<div class="empty-state"><div class="icon">😐</div>Not enough data to rank pairs yet</div>`;
+  } else {
+    const cards=allPairs.map((p,i)=>{
+      const abs=Math.abs(p.diff), isLong=p.diff>=0;
+      const color=isLong?'#6f9e5c':'#c0674a';
+      const verdict=abs>100?'🔥 Very Strong':abs>60?'✅ Strong':abs>30?'👍 Moderate':'😐 Weak';
+      const baseScore=scoreMap[p.base], quoteScore=scoreMap[p.quote];
+      return `<div style="background:var(--subtle);border-radius:8px;padding:10px 12px;margin-bottom:8px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
-          <span style="font-family:var(--mono);font-size:14px;font-weight:700;color:${color}">${strong.id}/${weak.id}</span>
-          <span style="font-family:var(--mono);font-size:9px;color:${color};font-weight:700;">LONG</span>
+          <span style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-right:6px;">#${i+1}</span>
+          <span style="font-family:var(--mono);font-size:14px;font-weight:700;color:${color};flex:1;">${p.base}/${p.quote}</span>
+          <span style="font-family:var(--mono);font-size:9px;color:${color};font-weight:700;">${isLong?'LONG':'SHORT'}</span>
         </div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);">${strong.id}: ${strong.score>0?'+':''}${strong.score} vs ${weak.id}: ${weak.score>0?'+':''}${weak.score}</div>
-        <div style="font-size:11px;margin-top:3px;color:var(--text)">${verdict} · ITS diff: ${diff}</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);">${p.base}: ${baseScore>0?'+':''}${baseScore} vs ${p.quote}: ${quoteScore>0?'+':''}${quoteScore}</div>
+        <div style="font-size:11px;margin-top:3px;color:var(--text)">${verdict} · ITS diff: ${p.diff>0?'+':''}${p.diff}</div>
       </div>`;
-      count++;
-    });
-  });
-  if(!pairHtml) pairHtml=`<div class="empty-state"><div class="icon">😐</div>Not enough divergence between currencies this week</div>`;
+    }).join('');
+    pairHtml=`<div style="max-height:640px;overflow-y:auto;padding-right:4px;">${cards}</div>`;
+  }
   pairsEl.innerHTML=pairHtml;
 }
 
