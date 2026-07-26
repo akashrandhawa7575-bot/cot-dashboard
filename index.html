@@ -250,6 +250,8 @@
   /* STRENGTH PAGE */
   .strength-layout{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
   @media(max-width:900px){.strength-layout{grid-template-columns:1fr}}
+  .ls-split-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media(max-width:560px){.ls-split-grid{grid-template-columns:1fr;}}
   .strength-panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px;}
   .strength-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:8px 10px;background:var(--subtle);border-radius:8px;}
   .strength-rank{font-family:var(--mono);font-size:10px;color:var(--muted);width:18px;text-align:center;flex-shrink:0;}
@@ -3363,31 +3365,44 @@ function renderStrengthPage(){
   scores.forEach(s=>{scoreMap[s.id]=s.score;});
   const allPairs=FOREX_PAIRS
     .filter(([base,quote])=>scoreMap[base]!==undefined&&scoreMap[quote]!==undefined)
-    .map(([base,quote])=>({base,quote,diff:scoreMap[base]-scoreMap[quote]}))
-    .sort((a,b)=>Math.abs(b.diff)-Math.abs(a.diff));
+    .map(([base,quote])=>({base,quote,diff:scoreMap[base]-scoreMap[quote]}));
 
-  let pairHtml='';
-  if(allPairs.length===0){
-    pairHtml=`<div class="empty-state"><div class="icon">😐</div>Not enough data to rank pairs yet</div>`;
-  } else {
-    const cards=allPairs.map((p,i)=>{
-      const abs=Math.abs(p.diff), isLong=p.diff>=0;
-      const color=isLong?'#6f9e5c':'#c0674a';
-      const verdict=abs>100?'🔥 Very Strong':abs>60?'✅ Strong':abs>30?'👍 Moderate':'😐 Weak';
-      const baseScore=scoreMap[p.base], quoteScore=scoreMap[p.quote];
-      return `<div style="background:var(--subtle);border-radius:8px;padding:10px 12px;margin-bottom:8px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
-          <span style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-right:6px;">#${i+1}</span>
-          <span style="font-family:var(--mono);font-size:14px;font-weight:700;color:${color};flex:1;">${p.base}/${p.quote}</span>
-          <span style="font-family:var(--mono);font-size:9px;color:${color};font-weight:700;">${isLong?'LONG':'SHORT'}</span>
-        </div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);">${p.base}: ${baseScore>0?'+':''}${baseScore} vs ${p.quote}: ${quoteScore>0?'+':''}${quoteScore}</div>
-        <div style="font-size:11px;margin-top:3px;color:var(--text)">${verdict} · ITS diff: ${p.diff>0?'+':''}${p.diff}</div>
-      </div>`;
-    }).join('');
-    pairHtml=`<div style="max-height:640px;overflow-y:auto;padding-right:4px;">${cards}</div>`;
+  const longPairs=allPairs.filter(p=>p.diff>=0).sort((a,b)=>b.diff-a.diff);
+  const shortPairs=allPairs.filter(p=>p.diff<0).sort((a,b)=>a.diff-b.diff);
+
+  function pairCard(p,i){
+    const abs=Math.abs(p.diff), isLong=p.diff>=0;
+    const color=isLong?'#6f9e5c':'#c0674a';
+    const verdict=abs>100?'🔥 Very Strong':abs>60?'✅ Strong':abs>30?'👍 Moderate':'😐 Weak';
+    const baseScore=scoreMap[p.base], quoteScore=scoreMap[p.quote];
+    return `<div style="background:var(--subtle);border-radius:8px;padding:10px 12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
+        <span style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-right:6px;">#${i+1}</span>
+        <span style="font-family:var(--mono);font-size:14px;font-weight:700;color:${color};flex:1;">${p.base}/${p.quote}</span>
+        <span style="font-family:var(--mono);font-size:9px;color:${color};font-weight:700;">${isLong?'LONG':'SHORT'}</span>
+      </div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);">${p.base}: ${baseScore>0?'+':''}${baseScore} vs ${p.quote}: ${quoteScore>0?'+':''}${quoteScore}</div>
+      <div style="font-size:11px;margin-top:3px;color:var(--text)">${verdict} · ITS diff: ${p.diff>0?'+':''}${p.diff}</div>
+    </div>`;
   }
-  pairsEl.innerHTML=pairHtml;
+  function pairColumn(title,color,list){
+    const body=list.length
+      ? list.map((p,i)=>pairCard(p,i)).join('')
+      : `<div style="font-family:var(--mono);font-size:11px;color:var(--muted);padding:12px 0;">No setups right now</div>`;
+    return `<div>
+      <div style="font-family:var(--mono);font-size:11px;font-weight:700;color:${color};text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">${title} (${list.length})</div>
+      <div style="max-height:640px;overflow-y:auto;padding-right:4px;">${body}</div>
+    </div>`;
+  }
+
+  if(allPairs.length===0){
+    pairsEl.innerHTML=`<div class="empty-state"><div class="icon">😐</div>Not enough data to rank pairs yet</div>`;
+  } else {
+    pairsEl.innerHTML=`<div class="ls-split-grid">
+      ${pairColumn('🟢 Long','#6f9e5c',longPairs)}
+      ${pairColumn('🔴 Short','#c0674a',shortPairs)}
+    </div>`;
+  }
 }
 
 // ─── PAIR BUILDER PAGE ────────────────────────────────────────────────────────
