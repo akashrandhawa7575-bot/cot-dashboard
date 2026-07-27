@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>COT Intelligence v8 – Institutional Decision Engine</title>
+<title>COT Intelligence v8 – Institutional Decision Engine by Akash</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap');
   :root{
@@ -565,7 +565,7 @@
 </script>
 
 <header>
-  <div class="logo">COT Intelligence <span class="v3badge">v8 PRO</span> <span style="color:var(--muted);font-weight:400;font-size:11px;margin-left:8px;">Institutional Decision Engine</span></div>
+  <div class="logo">COT Intelligence <span class="v3badge">v8 PRO</span> <span style="color:var(--muted);font-weight:400;font-size:11px;margin-left:8px;">Institutional Decision Engine by Akash</span></div>
   <div class="header-right">
     <span id="last-updated" style="font-size:10px;">Not loaded</span>
     <button class="refresh-btn" id="theme-toggle-btn" onclick="toggleTheme()" style="background:var(--panel);color:var(--text);border:1px solid var(--border);">
@@ -844,7 +844,7 @@
     <button class="sub-tab" onclick="switchSub('strength','pairs',this)">🔀 Pair Builder</button>
   </div>
 <div class="subpage active" id="page-strength">
-  <div class="info-box">💡 ITS Score (Institutional Trend Score) combines COT Index (30%) + normalized 4-week flow (25%) + graduated OI trend (20%) + commercial confirmation (25%). Load data first.</div>
+  <div class="info-box">💡 ITS Score (Institutional Trend Score) uses two different engines depending on market type. <strong>Forex:</strong> Non-Commercial 35% + Flow Momentum 35% + Currency Strength 20% + Commercial 10%. <strong>Metals:</strong> Commercial 35% + Commercial Divergence 25% + Open Interest 25% + Non-Commercial 15%. Load data first.</div>
   <div class="strength-layout">
     <div class="strength-panel">
       <div class="section-title">Currency Strength Ranking (ITS-Based)</div>
@@ -1046,7 +1046,7 @@
 </div>
 
 </main>
-<footer>COT Intelligence v8 PRO · Institutional Decision Engine · Forex Engine (Non-Comm 35% · Flow 35% · Curr Strength 20% · Comm 10%) · Metals Engine (Comm 35% · Div 25% · OI 25% · Non-Comm 15%) · NEW v8: Higher-High Detection · Momentum Heatmap · Institutional Streaks · Compression Detection · Vol-Adjusted Momentum · Continuation/Reversal Probability · Seasonal Bias (Metals) · Data: CFTC</footer>
+<footer>COT Intelligence v8 PRO · Institutional Decision Engine by Akash · Forex Engine (Non-Comm 35% · Flow 35% · Curr Strength 20% · Comm 10%) · Metals Engine (Comm 35% · Div 25% · OI 25% · Non-Comm 15%) · NEW v8: Higher-High Detection · Momentum Heatmap · Institutional Streaks · Compression Detection · Vol-Adjusted Momentum · Continuation/Reversal Probability · Seasonal Bias (Metals) · Data: CFTC</footer>
 
 <script>
 const MARKETS = [
@@ -1331,17 +1331,33 @@ async function loadData(){
       runWithConcurrency(DISAGG_MARKETS, 4, m=>fetchDisaggMarket(m).then(rows=>({id:m.id,rows})))
     ]);
     let loaded=0, firstError=null;
-    legacyResults.forEach(r=>{
+    const failedLegacy=[], failedDisagg=[];
+    legacyResults.forEach((r,i)=>{
+      const mkt=MARKETS[i];
       if(r.status==='fulfilled'&&r.value.rows.length){allData[r.value.id]=r.value.rows;loaded++;}
-      else if(r.status==='rejected'&&!firstError) firstError=r.reason&&r.reason.message;
+      else{
+        failedLegacy.push(mkt.id);
+        if(r.status==='rejected'&&!firstError) firstError=r.reason&&r.reason.message;
+      }
     });
-    disaggResults.forEach(r=>{if(r.status==='fulfilled'&&r.value.rows.length>0){disaggData[r.value.id]=r.value.rows;}});
+    disaggResults.forEach((r,i)=>{
+      const mkt=DISAGG_MARKETS[i];
+      if(r.status==='fulfilled'&&r.value.rows.length>0){disaggData[r.value.id]=r.value.rows;}
+      else{failedDisagg.push(mkt.id);}
+    });
     if(loaded===0){
       showStatus('error',`No data returned — CFTC API may be down, or CORS proxies all failed.${firstError?`<br><br><span style="font-family:var(--mono);font-size:11px;">Detail: ${firstError}</span>`:''}<br><br>Open DevTools → Network tab to see which requests failed, or click "Fetch COT Data" again — public CORS proxies are sometimes briefly rate-limited under burst load.`);
     } else {
       const disaggLoaded=Object.keys(disaggData).length;
-      showStatus('','');
       document.getElementById('last-updated').textContent=`Updated ${new Date().toLocaleTimeString()} · Legacy: ${loaded} · Disagg: ${disaggLoaded}`;
+      if(failedLegacy.length>0||failedDisagg.length>0){
+        const parts=[];
+        if(failedLegacy.length) parts.push(`${failedLegacy.length} market${failedLegacy.length>1?'s':''} failed to load and are missing from the dashboard: <strong>${failedLegacy.join(', ')}</strong>. Try "Fetch COT Data" again.`);
+        if(failedDisagg.length) parts.push(`${failedDisagg.length} disaggregated market${failedDisagg.length>1?'s':''} unavailable (showing Legacy-only data instead): <strong>${failedDisagg.join(', ')}</strong>.`);
+        showStatus('warning',parts.join('<br>'));
+      } else {
+        showStatus('','');
+      }
       renderAll();
     }
   } catch(e){
@@ -1691,6 +1707,7 @@ function showStatus(type,msg){
   const el=document.getElementById('status-area');
   if(!type){el.innerHTML='';return;}
   if(type==='loading') el.innerHTML=`<div class="loading-overlay"><div class="spinner"></div><p>${msg}</p></div>`;
+  else if(type==='warning') el.innerHTML=`<div style="background:rgba(201,163,95,.08);border:1px solid rgba(201,163,95,.25);border-radius:8px;padding:12px 14px;color:var(--neutral);font-size:12px;font-family:var(--mono);margin-bottom:14px;line-height:1.6;">⚠ ${msg}</div>`;
   else el.innerHTML=`<div class="error-box">⚠ ${msg}</div>`;
 }
 
@@ -1962,16 +1979,23 @@ function renderMatrixPage(){
   el.innerHTML=html;
 }
 
+// The UI labels this "52-week range" everywhere, but each market fetches up to
+// 260 weekly reports (~5 years). Both index functions below now cap the lookback
+// to the trailing 52 reports so the calculation actually matches what it claims.
+// Rows/nets are always ordered most-recent-first (CFTC API sorts DESC by date).
+const COT_INDEX_LOOKBACK_WEEKS=52;
+
 function calcCotIndex(nets){
   if(!nets||nets.length<2) return null;
-  const current=nets[0], min=Math.min(...nets), max=Math.max(...nets);
+  const windowed=nets.slice(0,COT_INDEX_LOOKBACK_WEEKS);
+  const current=windowed[0], min=Math.min(...windowed), max=Math.max(...windowed);
   if(max===min) return {index:50,min,max,current};
   return {index:Math.round(((current-min)/(max-min))*100),min,max,current};
 }
 
 function calcCommIndex(rows){
   if(!rows||rows.length<2) return null;
-  const nets=rows.map(r=>getCommNet(r));
+  const nets=rows.slice(0,COT_INDEX_LOOKBACK_WEEKS).map(r=>getCommNet(r));
   const current=nets[0], min=Math.min(...nets), max=Math.max(...nets);
   if(max===min) return {index:50,current};
   return {index:Math.round(((current-min)/(max-min))*100),current};
