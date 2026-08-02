@@ -567,6 +567,10 @@
 <header>
   <div class="logo">COT Intelligence <span class="v3badge">v8 PRO</span> <span style="color:var(--muted);font-weight:400;font-size:11px;margin-left:8px;">Institutional Decision Engine by Akash</span></div>
   <div class="header-right">
+    <div id="cot-countdown-widget" style="display:flex;flex-direction:column;align-items:flex-end;padding:4px 12px;border:1px solid var(--border);border-radius:6px;background:var(--panel);line-height:1.25;">
+      <span style="font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);">Next COT Release</span>
+      <span id="cot-countdown" style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--accent);">--</span>
+    </div>
     <span id="last-updated" style="font-size:10px;">Not loaded</span>
     <button class="refresh-btn" id="theme-toggle-btn" onclick="toggleTheme()" style="background:var(--panel);color:var(--text);border:1px solid var(--border);">
       <span id="theme-toggle-icon">🌙</span> <span id="theme-toggle-label">Dark</span>
@@ -1125,6 +1129,47 @@ function initQuoteRotation(){
   setInterval(rotateQuote,20000);
 }
 
+// ---- COT Release Countdown ----
+function getNextCOTRelease(){
+  const now=new Date();
+  const etNow=new Date(now.toLocaleString('en-US',{timeZone:'America/New_York'}));
+  let target=new Date(etNow);
+  target.setHours(15,30,0,0); // 3:30 PM ET
+  const day=etNow.getDay(); // 0=Sun...5=Fri,6=Sat
+  let daysUntilFriday=(5-day+7)%7;
+  if(daysUntilFriday===0 && etNow>=target) daysUntilFriday=7;
+  target.setDate(etNow.getDate()+daysUntilFriday);
+  const offsetMs=now.getTime()-etNow.getTime();
+  return new Date(target.getTime()+offsetMs);
+}
+function updateCOTCountdown(){
+  const el=document.getElementById('cot-countdown');
+  if(!el) return;
+  const target=getNextCOTRelease();
+  const now=new Date();
+  const diff=target-now;
+  if(diff<=0){ el.textContent='Releasing now...'; return; }
+  const days=Math.floor(diff/86400000);
+  const hours=Math.floor((diff/3600000)%24);
+  const minutes=Math.floor((diff/60000)%60);
+  const seconds=Math.floor((diff/1000)%60);
+  el.textContent=(days>0?days+'d ':'')+String(hours).padStart(2,'0')+'h '+String(minutes).padStart(2,'0')+'m '+String(seconds).padStart(2,'0')+'s';
+}
+function initCOTCountdown(){
+  updateCOTCountdown();
+  setInterval(updateCOTCountdown,1000);
+}
+function restoreLastFetchedDisplay(){
+  try{
+    const iso=localStorage.getItem('cot-last-fetched');
+    if(iso){
+      const d=new Date(iso);
+      const el=document.getElementById('last-updated');
+      if(el) el.textContent=`Last fetched ${d.toLocaleDateString()} ${d.toLocaleTimeString()}`;
+    }
+  }catch(e){}
+}
+
 const API_BASE='https://publicreporting.cftc.gov/resource/6dca-aqww.json';
 // Disaggregated Futures — separates Asset Managers, Leveraged Funds, Dealer/Intermediary
 const DISAGG_API='https://publicreporting.cftc.gov/resource/kh3c-gbw2.json';
@@ -1349,7 +1394,10 @@ async function loadData(){
       showStatus('error',`No data returned — CFTC API may be down, or CORS proxies all failed.${firstError?`<br><br><span style="font-family:var(--mono);font-size:11px;">Detail: ${firstError}</span>`:''}<br><br>Open DevTools → Network tab to see which requests failed, or click "Fetch COT Data" again — public CORS proxies are sometimes briefly rate-limited under burst load.`);
     } else {
       const disaggLoaded=Object.keys(disaggData).length;
-      document.getElementById('last-updated').textContent=`Updated ${new Date().toLocaleTimeString()} · Legacy: ${loaded} · Disagg: ${disaggLoaded}`;
+      const fetchTimestamp=new Date();
+      const lastUpdatedText=`Updated ${fetchTimestamp.toLocaleDateString()} ${fetchTimestamp.toLocaleTimeString()} · Legacy: ${loaded} · Disagg: ${disaggLoaded}`;
+      document.getElementById('last-updated').textContent=lastUpdatedText;
+      try{ localStorage.setItem('cot-last-fetched', fetchTimestamp.toISOString()); }catch(e){}
       if(failedLegacy.length>0||failedDisagg.length>0){
         const parts=[];
         if(failedLegacy.length) parts.push(`${failedLegacy.length} market${failedLegacy.length>1?'s':''} failed to load and are missing from the dashboard: <strong>${failedLegacy.join(', ')}</strong>. Try "Fetch COT Data" again.`);
@@ -3932,7 +3980,7 @@ function renderDivergencePage(){
   }).join('');
 }
 
-window.addEventListener('load',()=>{initTheme();initQuoteRotation();renderCustomPairChips();renderSignalLog();tfUpdateInstrumentOptions();});
+window.addEventListener('load',()=>{initTheme();initQuoteRotation();initCOTCountdown();restoreLastFetchedDisplay();renderCustomPairChips();renderSignalLog();tfUpdateInstrumentOptions();});
 window.addEventListener('resize',()=>{if(selectedId&&allData[selectedId]) drawChart(allData[selectedId]);});
 </script>
 </body>
