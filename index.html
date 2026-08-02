@@ -813,7 +813,7 @@
       </div>
     </div>
 
-    <div class="chart-title">Net Position — Last 12 Reports (flow trend)</div>
+    <div class="chart-title" id="net-chart-title">Net Position — Last 12 Reports (flow trend)</div>
     <div class="chart-wrap"><div id="net-chart" class="net-chart"></div><div id="net-chart-tooltip" class="chart-tooltip"></div></div>
     <div class="separator"></div>
 
@@ -1089,7 +1089,7 @@ function applyTheme(theme){
   if(icon) icon.textContent=isLight?'☀️':'🌙';
   if(label) label.textContent=isLight?'Light':'Dark';
   // Redraw canvas chart since it's drawn with explicit colors, not CSS vars
-  if(selectedId&&allData[selectedId]) drawChart(allData[selectedId]);
+  if(selectedId&&allData[selectedId]){ const _m=MARKETS.find(m=>m.id===selectedId); drawChart(allData[selectedId], _m&&_m.cat==='metals'); }
 }
 function toggleTheme(){
   const isLight=document.body.classList.contains('light-theme');
@@ -3336,12 +3336,14 @@ let netChartInstance=null, netChartSeries=null, netChartPoints=[];
 function drawChart(rows, isMetals=false){
   const container=document.getElementById('net-chart');
   if(!container||typeof LightweightCharts==='undefined') return;
+  const titleEl=document.getElementById('net-chart-title');
+  if(titleEl) titleEl.textContent=`${isMetals?'Commercial':'Non-Commercial'} Net Position — Last 12 Reports (flow trend)`;
   const display=rows.slice(0,12);
   // Build unique, ascending-by-date points; dedupe same-day reports defensively.
   const seen=new Set();
   netChartPoints=[...display].reverse().map(r=>({
     time:r.report_date_as_yyyy_mm_dd,
-    value:getNet(r)
+    value:isMetals?getCommNet(r):getNet(r)
   })).filter(p=>{
     if(!p.time||seen.has(p.time)) return false;
     seen.add(p.time); return true;
@@ -3981,7 +3983,7 @@ function renderDivergencePage(){
 }
 
 window.addEventListener('load',()=>{initTheme();initQuoteRotation();initCOTCountdown();restoreLastFetchedDisplay();renderCustomPairChips();renderSignalLog();tfUpdateInstrumentOptions();});
-window.addEventListener('resize',()=>{if(selectedId&&allData[selectedId]) drawChart(allData[selectedId]);});
+window.addEventListener('resize',()=>{if(selectedId&&allData[selectedId]){ const _m=MARKETS.find(m=>m.id===selectedId); drawChart(allData[selectedId], _m&&_m.cat==='metals'); }});
 </script>
 </body>
 </html>
