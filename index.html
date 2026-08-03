@@ -3592,6 +3592,59 @@ function tfBigResult(title,color,lines){
   </div>`;
 }
 
+function tfStatCell(label,val,color){
+  return `<div style="background:var(--subtle);border-radius:8px;padding:10px 12px;">
+    <div style="font-family:var(--mono);font-size:8px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:4px;">${label}</div>
+    <div style="font-family:var(--mono);font-size:15px;font-weight:700;color:${color||'var(--text)'}">${val}</div>
+  </div>`;
+}
+
+function tfSummaryBlock(title,cells,note){
+  return `<div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px;">
+    <div style="font-size:11px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;">📊 ${title}</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:${note?'10px':'0'};">${cells.join('')}</div>
+    ${note?`<div style="font-size:11px;line-height:1.7;color:var(--muted);">${note}</div>`:''}
+  </div>`;
+}
+
+function tfForexSummary(id,label){
+  if(id==='USD'){
+    const score=Math.round(calcUSDScore(true)/2+50);
+    return {score,cells:[tfStatCell(`${label} ITS`,score,itsLabel(score).color),tfStatCell(`${label} Bias`,itsLabel(score).text,itsLabel(score).color)]};
+  }
+  const rows=allData[id];
+  const score=calcITS(rows,false,id);
+  const lbl=itsLabel(score);
+  const flow=getFlowChanges(rows);
+  const pct=calcPercentile(rows,false);
+  const z=calcZScore(rows,false);
+  return {score,cells:[
+    tfStatCell(`${label} ITS`,score,lbl.color),
+    tfStatCell(`${label} Bias`,lbl.text,lbl.color),
+    tfStatCell(`${label} 4W Flow`,fmtChange(flow.w4),flow.w4>=0?'#6f9e5c':'#c0674a'),
+    tfStatCell(`${label} Percentile`,pct!==null?pct+'th':'—',pct!==null&&(pct>=90||pct<=10)?'#c9a35f':'var(--text)'),
+    tfStatCell(`${label} Z-Score`,z?z.z+'σ':'—','var(--text)'),
+  ]};
+}
+
+function tfMetalsSummary(id,rows){
+  const commCi=calcCommIndex(rows);
+  const ci=calcCotIndex(rows.map(r=>getNet(r)));
+  const its=calcMetalsITS(rows);
+  const flow=getCommFlowChanges(rows);
+  const pct=calcPercentile(rows,true);
+  const oi=parseFloat(rows[0].open_interest_all||0), oi1=parseFloat(rows[1]?.open_interest_all||oi);
+  const oiTrend=oi>oi1?'Rising':oi<oi1?'Falling':'Flat';
+  return [
+    tfStatCell('Commercial Index',commCi?commCi.index:'—',commCi?cotIndexColor(commCi.index):'var(--text)'),
+    tfStatCell('Non-Comm Index',ci?ci.index:'—',ci?cotIndexColor(ci.index):'var(--text)'),
+    tfStatCell('Comm-Spec Divergence',its.divergenceVal!==undefined?(its.divergenceVal>=0?'+':'')+its.divergenceVal.toFixed(0):'—',its.divergenceVal>=15?'#6f9e5c':its.divergenceVal<=-15?'#c0674a':'var(--text)'),
+    tfStatCell('Commercial 4W Flow',fmtChange(flow.w4),flow.w4>=0?'#6f9e5c':'#c0674a'),
+    tfStatCell('Percentile (Comm)',pct!==null?pct+'th':'—',pct!==null&&(pct>=90||pct<=10)?'#c9a35f':'var(--text)'),
+    tfStatCell('Open Interest Trend',oiTrend,oiTrend==='Rising'?'#6f9e5c':oiTrend==='Falling'?'#c0674a':'var(--text)'),
+  ];
+}
+
 function runTradeFilter(){
   const type=document.getElementById('tf-type').value;
   const direction=document.getElementById('tf-direction').value;
@@ -3630,6 +3683,11 @@ function runTradeFilter(){
     }
     resultEl.innerHTML=tfBigResult(title,color,lines);
 
+    const baseSum=tfForexSummary(base,base);
+    const quoteSum=tfForexSummary(quote,quote);
+    resultEl.innerHTML+=tfSummaryBlock('Supporting Data — Pair Breakdown',[...baseSum.cells,...quoteSum.cells],
+      `Differential = ${base} ITS (${baseITS}) − ${quote} ITS (${quoteITS}) = ${pairScore>=0?'+':''}${pairScore}. Values beyond ±40 are considered strong; between ±20–40 moderate; inside ±20 is the neutral no-trade band. Use this alongside your zone/structure confirmation — it's not a standalone entry trigger.`);
+
   } else {
     const id=document.getElementById('tf-instrument').value;
     if(!id){resultEl.innerHTML=`<div class="custom-pair-error">⚠ Select a metal first.</div>`;return;}
@@ -3649,6 +3707,8 @@ function runTradeFilter(){
       lines=`<strong>Williams Method (26W Commercial COT):</strong> Index at ${w.index}/100 — inside the neutral 10–90 zone. Williams gives <strong>no signal</strong> here in either direction. Stand aside until commercials reach an extreme (≤10 or ≥90).`;
     }
     resultEl.innerHTML=tfBigResult(title,color,lines);
+    resultEl.innerHTML+=tfSummaryBlock(`Supporting Data — ${id}`,tfMetalsSummary(id,allData[id]),
+      `Williams Method looks only at the 26-week Commercial COT Index extreme (≤10 or ≥90). The stats above give the fuller picture — Commercial vs Non-Commercial index gap (divergence), flow direction, and where today's Commercial net sits historically. Confirm with price structure at your zone before entry.`);
   }
 }
 
