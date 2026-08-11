@@ -1162,10 +1162,13 @@ function initCOTCountdown(){
 function restoreLastFetchedDisplay(){
   try{
     const iso=localStorage.getItem('cot-last-fetched');
+    const reportDate=localStorage.getItem('cot-report-date');
     if(iso){
       const d=new Date(iso);
       const el=document.getElementById('last-updated');
-      if(el) el.textContent=`Last fetched ${d.toLocaleDateString()} ${d.toLocaleTimeString()}`;
+      if(el) el.textContent=reportDate
+        ? `COT data as of ${reportDate} · Fetched ${d.toLocaleDateString()} ${d.toLocaleTimeString()}`
+        : `Last fetched ${d.toLocaleDateString()} ${d.toLocaleTimeString()}`;
     }
   }catch(e){}
 }
@@ -1395,9 +1398,19 @@ async function loadData(){
     } else {
       const disaggLoaded=Object.keys(disaggData).length;
       const fetchTimestamp=new Date();
-      const lastUpdatedText=`Updated ${fetchTimestamp.toLocaleDateString()} ${fetchTimestamp.toLocaleTimeString()} · Legacy: ${loaded} · Disagg: ${disaggLoaded}`;
+      let reportDateText='—';
+      const firstMarketRows=Object.values(allData).find(rows=>rows&&rows.length&&rows[0].report_date_as_yyyy_mm_dd);
+      if(firstMarketRows){
+        const rd=firstMarketRows[0].report_date_as_yyyy_mm_dd;
+        const rdDate=new Date(rd+'T00:00:00');
+        reportDateText=isNaN(rdDate)?rd:rdDate.toLocaleDateString();
+      }
+      const lastUpdatedText=`COT data as of ${reportDateText} · Fetched ${fetchTimestamp.toLocaleDateString()} ${fetchTimestamp.toLocaleTimeString()} · Legacy: ${loaded} · Disagg: ${disaggLoaded}`;
       document.getElementById('last-updated').textContent=lastUpdatedText;
-      try{ localStorage.setItem('cot-last-fetched', fetchTimestamp.toISOString()); }catch(e){}
+      try{
+        localStorage.setItem('cot-last-fetched', fetchTimestamp.toISOString());
+        localStorage.setItem('cot-report-date', reportDateText);
+      }catch(e){}
       if(failedLegacy.length>0||failedDisagg.length>0){
         const parts=[];
         if(failedLegacy.length) parts.push(`${failedLegacy.length} market${failedLegacy.length>1?'s':''} failed to load and are missing from the dashboard: <strong>${failedLegacy.join(', ')}</strong>. Try "Fetch COT Data" again.`);
