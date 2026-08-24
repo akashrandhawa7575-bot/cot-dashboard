@@ -2992,7 +2992,8 @@ function showDetail(id){
   if(scCommLabel) scCommLabel.textContent=isMetals?'🏭 Commercial (Primary — Metals)':'🏦 Commercial (Secondary — Forex)';
 
   // OI Trend
-  const oiUp=oi>oi1, netUp=net>net1;
+  const oiUp = oi > oi1;
+  const netUp = isMetals ? (commNet > getCommNet(r1)) : (net > net1);
   let oiLabel,oiDesc;
   if(oiUp&&netUp){oiLabel='OI ↑ + Net Long ↑ → Very Bullish';oiDesc='Rising OI with rising net longs = new money entering long side. Strong institutional conviction.';}
   else if(oiUp&&!netUp){oiLabel='OI ↑ + Net Long ↓ → Bearish Build';oiDesc='Rising OI with falling net longs = new shorts being added. Bears building with conviction.';}
