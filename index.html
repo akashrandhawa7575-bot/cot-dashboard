@@ -2782,7 +2782,7 @@ function showDetail(id){
   const primaryNetForSignal=isMetals?commNet:net, primaryNetForSignal1=isMetals?getCommNet(r1):net1;
   const sig=getSignal(primaryNetForSignal,primaryNetForSignal1,rows);
   const oi=parseFloat(r.open_interest_all||0), oi1=parseFloat(r1.open_interest_all||0), oiChg=oi-oi1;
-  const nets=rows.map(ro=>getNet(ro));
+  const nets=rows.map(ro=>isMetals?getCommNet(ro):getNet(ro));
   const ci=calcCotIndex(nets);
   const pct=calcPercentile(rows,isMetals);
   const itsResult=calcITSFull(rows,isMetals,m.id);
@@ -2992,8 +2992,7 @@ function showDetail(id){
   if(scCommLabel) scCommLabel.textContent=isMetals?'🏭 Commercial (Primary — Metals)':'🏦 Commercial (Secondary — Forex)';
 
   // OI Trend
-  const oiUp = oi > oi1;
-  const netUp = isMetals ? (commNet > getCommNet(r1)) : (net > net1);
+  const oiUp=oi>oi1, netUp=net>net1;
   let oiLabel,oiDesc;
   if(oiUp&&netUp){oiLabel='OI ↑ + Net Long ↑ → Very Bullish';oiDesc='Rising OI with rising net longs = new money entering long side. Strong institutional conviction.';}
   else if(oiUp&&!netUp){oiLabel='OI ↑ + Net Long ↓ → Bearish Build';oiDesc='Rising OI with falling net longs = new shorts being added. Bears building with conviction.';}
@@ -3139,7 +3138,7 @@ function buildInsights(m,r,net,flow,sig,commNet,ci,pct,its,itsLbl,isMetals){
 
   // COT-M Momentum insight
   const rows_=allData[m.id];
-  const cotm_=calcCOTM(rows_,3);
+  const cotm_=calcCOTM(rows_,3,isMetals);
   if(cotm_){
     const lbl=cotmLabel(cotm_);
     if(Math.abs(cotm_.momentum)>=15){
@@ -3151,7 +3150,7 @@ function buildInsights(m,r,net,flow,sig,commNet,ci,pct,its,itsLbl,isMetals){
   }
 
   // Crowding Ratio insight
-  const crowd_=calcCrowdingRatio(rows_);
+  const crowd_=calcCrowdingRatio(rows_,isMetals);
   if(crowd_){
     const cLbl=crowdingLabel(crowd_.ratio);
     const abs=Math.abs(crowd_.ratio);
@@ -3181,10 +3180,12 @@ function buildInsights(m,r,net,flow,sig,commNet,ci,pct,its,itsLbl,isMetals){
   // COT Index
   if(ci){
     const idx=ci.index;
-    if(idx>=80) insights.push({icon:'🔥',cls:'warn',text:`<strong>Extreme Bullish COT Index (${idx}/100):</strong> Top of historical range. <span class="warn-text">Crowded long risk</span> — use tighter stops. Any surprise can trigger violent unwinding.`});
-    else if(idx>=60) insights.push({icon:'📈',cls:'',text:`<strong>Bullish COT Index (${idx}/100):</strong> Institutional bias is bullish. Favor long setups at pullbacks to order blocks / FVGs on H4.`});
-    else if(idx<=20) insights.push({icon:'🥶',cls:'warn',text:`<strong>Extreme Bearish COT Index (${idx}/100):</strong> Bottom of range — <span class="bull-text">squeeze risk</span>. Any bullish catalyst can trigger a violent short squeeze.`});
-    else if(idx<=40) insights.push({icon:'📉',cls:'',text:`<strong>Bearish COT Index (${idx}/100):</strong> Institutional bias is bearish. Favor short setups on rallies.`});
+    const ciLabel=isMetals?'Commercial COT Index':'Speculator COT Index';
+    const biasLabel=isMetals?'Commercial bias':'Speculator bias';
+    if(idx>=80) insights.push({icon:'🔥',cls:'warn',text:`<strong>Extreme Bullish ${ciLabel} (${idx}/100):</strong> Top of historical range. <span class="warn-text">Crowded long risk</span> — use tighter stops. Any surprise can trigger violent unwinding.`});
+    else if(idx>=60) insights.push({icon:'📈',cls:'',text:`<strong>Bullish ${ciLabel} (${idx}/100):</strong> ${biasLabel} is bullish. Favor long setups at pullbacks to order blocks / FVGs on H4.`});
+    else if(idx<=20) insights.push({icon:'🥶',cls:'warn',text:`<strong>Extreme Bearish ${ciLabel} (${idx}/100):</strong> Bottom of range — <span class="bull-text">squeeze risk</span>. Any bullish catalyst can trigger a violent short squeeze.`});
+    else if(idx<=40) insights.push({icon:'📉',cls:'',text:`<strong>Bearish ${ciLabel} (${idx}/100):</strong> ${biasLabel} is bearish. Favor short setups on rallies.`});
   }
 
   // Commercial (context-aware, engine-specific)
@@ -3214,9 +3215,9 @@ function buildInsights(m,r,net,flow,sig,commNet,ci,pct,its,itsLbl,isMetals){
   }
 
   // ── NEW v7 INSTITUTIONAL INSIGHTS ──
-  const z=calcZScore(rows_);
-  const persist=calcFlowPersistence(rows_);
-  const accel=calcAcceleration(rows_);
+  const z=calcZScore(rows_,isMetals);
+  const persist=calcFlowPersistence(rows_,isMetals);
+  const accel=calcAcceleration(rows_,isMetals);
   const conf=calcConfidence(rows_,isMetals,m.id);
 
   if(z){
