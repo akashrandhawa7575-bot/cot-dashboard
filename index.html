@@ -49,6 +49,19 @@
   .nav-tab:not(.active):hover{color:var(--text);}
 
   main{max-width:1440px;margin:0 auto;padding:28px 28px;}
+  @media(max-width:640px){
+    header{padding:12px 14px;gap:8px;}
+    main{padding:14px 10px;}
+    .nav-tabs{padding:0 6px;}
+    .sub-tabs{overflow-x:auto;flex-wrap:nowrap;white-space:nowrap;padding-bottom:4px;}
+    .pairs-grid,.extremes-grid,.diverg-grid,.currency-stat-grid,.top-trade-grid,#disagg-grid,#williams-metals-grid{grid-template-columns:1fr !important;}
+    .flow-grid,.its-grid,.heatmap-grid,.metrics-row{grid-template-columns:repeat(2,1fr);}
+    .spec-comm-grid,.its-breakdown,.disagg-trio{grid-template-columns:1fr;}
+    .williams-table,.matrix-table{font-size:11px;}
+    .custom-pair-box{padding:14px 12px;}
+    .tab-btn{padding:6px 10px;}
+    #pair-history-table td,#pair-history-table th{padding-left:3px !important;padding-right:3px !important;}
+  }
   .page{display:none;}
   .page-group{display:none;}
   .page-group.active{display:block;}
@@ -883,6 +896,7 @@
   <div class="custom-pair-box" id="pair-history-box">
     <div class="custom-pair-title">📈 Pair Score History<span class="custom-pair-badge">ITS by week</span></div>
     <div class="custom-pair-sub">Each pair's ITS differential (Base ITS − Quote ITS) recomputed for past weeks from the COT data already loaded. Click a row for the chart.</div>
+    <div id="pair-digest" style="margin:12px 0 4px;"></div>
     <div id="pair-history-controls" style="display:flex;gap:6px;flex-wrap:wrap;margin:10px 0;"></div>
     <div id="pair-history-table" style="overflow-x:auto;"></div>
     <div id="pair-history-detail"></div>
@@ -944,6 +958,7 @@
   <div style="background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:20px;">
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
       <div style="font-family:var(--mono);font-size:11px;color:var(--muted);">Record which method's signal you traded. Update outcome later to track win rates.</div>
+      <span style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;"><button class="w-log-btn" onclick="exportLog()">⬇ Export</button><button class="w-log-btn" onclick="document.getElementById('log-import-file').click()">⬆ Import</button><input type="file" id="log-import-file" accept="application/json,.json" style="display:none" onchange="importLog(this)"></span>
       <button onclick="showLogModal()" style="background:linear-gradient(135deg,#7fae82,#9a8fae);color:#fff;border:none;padding:8px 18px;border-radius:8px;font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;">+ Log New Signal</button>
     </div>
 
@@ -977,6 +992,7 @@
   <div id="williams-metals-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;">
     <div class="empty-state" style="grid-column:1/-1"><div class="icon">🥇</div>Fetch COT data to see Williams Method metals analysis</div>
   </div>
+  <div id="williams-metals-history"></div>
 </div>
 </div>
 
@@ -1374,6 +1390,24 @@ async function fetchDisaggMarket(market){
   return fetchWithCORS(url);
 }
 
+// Pre-fetched snapshot (data/cot.json, refreshed weekly by GitHub Action).
+// Falls back to live CFTC fetch if missing, stale (>9 days) or ?live=1.
+async function loadSnapshot(){
+  if(/[?&]live=1/.test(location.search)||location.protocol==='file:') return null;
+  try{
+    const r=await fetch('data/cot.json?t='+Date.now()); if(!r.ok) return null;
+    const s=await r.json();
+    if(!s||!s.legacy||!Object.keys(s.legacy).length) return null;
+    const first=Object.values(s.legacy)[0][0].report_date_as_yyyy_mm_dd;
+    if((Date.now()-new Date(first+'T00:00:00'))/864e5>9) return null;
+    return s;
+  }catch(e){ return null; }
+}
+function snapResults(s){
+  const mk=(list,src)=>list.map(m=>src[m.id]?{status:'fulfilled',value:{id:m.id,rows:src[m.id]}}:{status:'rejected',reason:new Error('not in snapshot')});
+  return [mk(MARKETS,s.legacy),mk(DISAGG_MARKETS,s.disagg||{})];
+}
+
 async function loadData(){
   const btn=document.getElementById('refresh-btn');
   const icon=document.getElementById('refresh-icon');
@@ -1383,7 +1417,8 @@ async function loadData(){
   try{
     // Fetch Legacy and Disaggregated with limited concurrency (avoids
     // triggering rate limits on the free CORS proxies from burst traffic)
-    const [legacyResults, disaggResults]=await Promise.all([
+    let snap=null; try{ snap=await loadSnapshot(); }catch(e){}
+    const [legacyResults, disaggResults]=snap?snapResults(snap):await Promise.all([
       runWithConcurrency(MARKETS, 4, m=>fetchMarket(m).then(rows=>({id:m.id,rows}))),
       runWithConcurrency(DISAGG_MARKETS, 4, m=>fetchDisaggMarket(m).then(rows=>({id:m.id,rows})))
     ]);
@@ -1414,7 +1449,7 @@ async function loadData(){
         const rdDate=new Date(rd+'T00:00:00');
         reportDateText=isNaN(rdDate)?rd:rdDate.toLocaleDateString();
       }
-      const lastUpdatedText=`COT data as of ${reportDateText} · Fetched ${fetchTimestamp.toLocaleDateString()} ${fetchTimestamp.toLocaleTimeString()} · Legacy: ${loaded} · Disagg: ${disaggLoaded}`;
+      const lastUpdatedText=`COT data as of ${reportDateText} · Fetched ${fetchTimestamp.toLocaleDateString()} ${fetchTimestamp.toLocaleTimeString()} · Legacy: ${loaded} · Disagg: ${disaggLoaded} · ${snap?'Auto snapshot':'Live CFTC'}`;
       document.getElementById('last-updated').textContent=lastUpdatedText;
       try{
         localStorage.setItem('cot-last-fetched', fetchTimestamp.toISOString());
@@ -1522,6 +1557,27 @@ function getLog(){
 }
 function saveLog(entries){
   try{ localStorage.setItem(LOG_KEY,JSON.stringify(entries)); } catch(e){}
+}
+
+function exportLog(){
+  const blob=new Blob([JSON.stringify(getLog(),null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='cot-signal-log-'+new Date().toISOString().slice(0,10)+'.json'; a.click(); URL.revokeObjectURL(a.href);
+}
+function importLog(input){
+  const f=input.files&&input.files[0]; if(!f) return;
+  const rd=new FileReader();
+  rd.onload=()=>{
+    try{
+      const inc=JSON.parse(rd.result); if(!Array.isArray(inc)) throw new Error('not a log file');
+      const cur=getLog(), ids=new Set(cur.map(e=>e.id));
+      const add=inc.filter(e=>e&&e.id!==undefined&&!ids.has(e.id));
+      saveLog(cur.concat(add)); renderSignalLog();
+      alert(`Imported ${add.length} new entr${add.length===1?'y':'ies'} (${inc.length-add.length} duplicates skipped).`);
+    }catch(e){ alert('Import failed: '+e.message); }
+    input.value='';
+  };
+  rd.readAsText(f);
 }
 
 function showLogModal(market,itsVal,willVal){
@@ -1715,7 +1771,7 @@ function renderWilliamsMetalsPage(){
 }
 
 function renderAll(){
-  renderCards(); renderStrengthPage(); renderPairsPage(); renderPairHistory(); renderExtremesPage(); renderDivergencePage(); renderDashboard(); renderDisaggPage(); renderMatrixPage(); renderWilliamsPage(); renderWilliamsMetalsPage(); renderSeasonalPage();
+  renderCards(); renderStrengthPage(); renderPairsPage(); renderPairHistory(); renderExtremesPage(); renderDivergencePage(); renderDashboard(); renderDisaggPage(); renderMatrixPage(); renderWilliamsPage(); renderWilliamsMetalsPage(); renderMetalsWilliamsHistory(); renderSeasonalPage();
 }
 
 // ─── SEASONAL BIAS PAGE ────────────────────────────────────────────────────────
@@ -3586,7 +3642,7 @@ function renderPairsPage(){
 // Recomputes every currency's ITS as it would have read k weeks ago by slicing
 // rows (rows[0] = newest) and temporarily swapping the global allData, so the
 // peer-strength component is historically consistent too.
-let pairHistWeeks=13, pairHistSort='now', pairHistSel=null, pairHistCache=null;
+let pairHistWeeks=13, pairHistSort='now', pairHistSel=null, pairHistCache=null, pairHistMethod='ITS';
 
 function computePairHistory(weeks){
   const fx=MARKETS.filter(m=>m.cat==='forex'&&allData[m.id]).map(m=>m.id);
@@ -3594,10 +3650,10 @@ function computePairHistory(weeks){
   const minLen=Math.min(...fx.map(id=>allData[id].length));
   const n=Math.min(weeks,minLen-30);
   if(n<2) return null;
-  const stamp=fx.map(id=>allData[id][0].report_date_as_yyyy_mm_dd).join('|')+'|'+n;
+  const stamp=pairHistMethod+'|'+fx.map(id=>allData[id][0].report_date_as_yyyy_mm_dd).join('|')+'|'+n;
   if(pairHistCache&&pairHistCache.stamp===stamp) return pairHistCache;
-  const real=allData, hist={USD:[]}, dates=[];
-  fx.forEach(id=>hist[id]=[]);
+  const real=allData, hist={USD:[]}, whist={USD:[]}, dates=[];
+  fx.forEach(id=>{hist[id]=[];whist[id]=[];});
   try{
     for(let k=0;k<n;k++){
       const snap=Object.assign({},real);
@@ -3605,10 +3661,11 @@ function computePairHistory(weeks){
       allData=snap;
       fx.forEach(id=>hist[id].push(calcITS(snap[id],false,id)));
       hist.USD.push(Math.round(calcUSDScore(true)/2+50));
+      fx.concat('USD').forEach(id=>whist[id].push(getCcyWilliamsIndex(id)));
       dates.push(real[fx[0]][k].report_date_as_yyyy_mm_dd);
     }
   } finally { allData=real; }
-  pairHistCache={stamp,n,dates,hist};
+  pairHistCache={stamp,n,dates,hist,whist};
   return pairHistCache;
 }
 
@@ -3618,6 +3675,7 @@ function phCellBg(v){
 }
 function phZone(v){ return v>20?'BUY':v<-20?'SELL':'NEUTRAL'; }
 
+function phSetMethod(m){ pairHistMethod=m; renderPairHistory(); }
 function phSetWeeks(w){ pairHistWeeks=w; renderPairHistory(); }
 function phSetSort(s){ pairHistSort=s; renderPairHistory(); }
 function phSelect(key){ pairHistSel=(pairHistSel===key?null:key); renderPairHistory(); }
@@ -3631,10 +3689,13 @@ function renderPairHistory(){
   const btn=(label,active,fn)=>`<button class="tab-btn ${active?'active':''}" onclick="${fn}">${label}</button>`;
   ctl.innerHTML=[8,13,26,52].map(w=>btn(w+'W',pairHistWeeks===w,`phSetWeeks(${w})`)).join('')
     +'<span style="width:14px"></span>'
+    +['ITS','Williams'].map(m=>btn('Method: '+m,pairHistMethod===m,`phSetMethod('${m}')`)).join('')
+    +'<span style="width:14px"></span>'
     +[['now','Sort: Strongest now'],['d1','Sort: 1W change'],['d4','Sort: 4W change']].map(([k,l])=>btn(l,pairHistSort===k,`phSetSort('${k}')`)).join('');
 
   const rows=FOREX_PAIRS.filter(([b,q])=>H.hist[b]&&H.hist[q]).map(([b,q])=>{
-    const s=H.hist[b].map((v,i)=>v-H.hist[q][i]); // index 0 = newest
+    const src=pairHistMethod==='ITS'?H.hist:H.whist;
+    const s=src[b].map((v,i)=>(v==null||src[q][i]==null)?0:v-src[q][i]); // index 0 = newest
     let streak=1; const z=phZone(s[0]);
     while(streak<s.length&&phZone(s[streak])===z) streak++;
     const d1=s.length>1?s[0]-s[1]:0, d4=s.length>4?s[0]-s[4]:null;
@@ -3665,6 +3726,7 @@ function renderPairHistory(){
   });
   tbl.innerHTML=html+'</tbody></table>';
 
+  renderPairDigest();
   const det=document.getElementById('pair-history-detail');
   const r=rows.find(x=>x.key===pairHistSel);
   det.innerHTML=r?phDetailHtml(r,H):'';
@@ -3688,18 +3750,68 @@ function phLineSvg(series,dates,yMin,yMax,midLine,w=640,h=170){
 function phDetailHtml(r,H){
   const dates=H.dates.slice().reverse(); // oldest → newest
   const pair=r.s.slice().reverse();
-  const base=H.hist[r.b].slice().reverse(), quote=H.hist[r.q].slice().reverse();
+  const srcH=pairHistMethod==='ITS'?H.hist:H.whist;
+  const base=srcH[r.b].slice().reverse(), quote=srcH[r.q].slice().reverse();
   const lg=(c,l)=>`<span style="margin-right:14px;"><span style="display:inline-block;width:10px;height:3px;background:${c};vertical-align:middle;margin-right:5px;"></span>${l}</span>`;
   return `<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);">
     <div style="font-family:var(--mono);font-size:14px;font-weight:700;margin-bottom:10px;">${r.b}/${r.q} — last ${dates.length} weeks</div>
-    <div class="chart-title">Pair score (Base ITS − Quote ITS) · above +20 BUY · below −20 SELL</div>
+    <div class="chart-title">Pair score (Base − Quote, ${pairHistMethod}) · above +20 BUY · below −20 SELL</div>
     ${phLineSvg([{name:'Pair score',color:'#c9a35f',vals:pair}],dates,-100,100,0)}
-    <div class="chart-title" style="margin-top:12px;">Individual ITS (0–100)</div>
+    <div class="chart-title" style="margin-top:12px;">Individual ${pairHistMethod==='ITS'?'ITS':'Williams index'} (0–100)</div>
     ${phLineSvg([{name:r.b,color:'#6f9e5c',vals:base},{name:r.q,color:'#9a8fae',vals:quote}],dates,0,100,50)}
     <div style="font-family:var(--mono);font-size:10px;margin-top:6px;">${lg('#6f9e5c',r.b+' ITS')}${lg('#9a8fae',r.q+' ITS')}</div>
   </div>`;
 }
 
+
+// ─── WEEKLY DIGEST: what changed since last week ───────────────────────────────
+function renderPairDigest(){
+  const el=document.getElementById('pair-digest'); if(!el) return;
+  const saveM=pairHistMethod; let I,W;
+  try{ pairHistMethod='ITS'; I=computePairHistory(pairHistWeeks); pairHistMethod='Williams'; W=computePairHistory(pairHistWeeks); }
+  finally{ pairHistMethod=saveM; }
+  if(!I||!W||I.n<2){ el.innerHTML=''; return; }
+  const zone=v=>v>40?'STRONG BUY':v>20?'BUY':v<-40?'STRONG SELL':v<-20?'SELL':'NEUTRAL';
+  const sg=v=>(v>0?'+':'')+v;
+  const items=[];
+  FOREX_PAIRS.forEach(([b,q])=>{
+    if(!I.hist[b]||!I.hist[q]) return;
+    const n0=I.hist[b][0]-I.hist[q][0], n1=I.hist[b][1]-I.hist[q][1];
+    const w0=(W.whist[b][0]!=null&&W.whist[q][0]!=null)?W.whist[b][0]-W.whist[q][0]:null;
+    const w1=(W.whist[b][1]!=null&&W.whist[q][1]!=null)?W.whist[b][1]-W.whist[q][1]:null;
+    const name=`${b}/${q}`;
+    if(zone(n0)!==zone(n1)){
+      const up=Math.abs(n0)>Math.abs(n1);
+      items.push({pri:up?1:2,icon:up?'🔺':'🔻',name,text:`${zone(n1)} → ${zone(n0)}`,sub:`score ${sg(n1)} → ${sg(n0)}`,color:n0>=n1?'#6f9e5c':'#c0674a'});
+    }
+    if(w0!=null&&w1!=null){
+      const a0=williamsPairAgreement(n0,w0).text, a1=williamsPairAgreement(n1,w1).text;
+      if(a0!==a1&&(a0.includes('Aligned')||a1.includes('Aligned')))
+        items.push({pri:a0.includes('Aligned')?1:3,icon:a0.includes('Aligned')?'✅':'⚡',name,text:a0.includes('Aligned')?'ITS & Williams now aligned':'ITS & Williams alignment lost',sub:`ITS ${sg(n0)} · Williams ${sg(w0)}`,color:a0.includes('Aligned')?'#6f9e5c':'#9a8fae'});
+    }
+  });
+  items.sort((a,c)=>a.pri-c.pri);
+  const d0=I.dates[0], d1=I.dates[1];
+  el.innerHTML=`<div style="background:var(--subtle);border:1px solid var(--border);border-radius:10px;padding:12px 14px;">
+    <div style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--accent);margin-bottom:8px;">🗓 WHAT CHANGED · ${d1} → ${d0}</div>
+    ${items.length?`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:6px;">${items.map(i=>`<div style="font-family:var(--mono);font-size:11px;padding:6px 8px;border-left:3px solid ${i.color};background:var(--panel);border-radius:4px;"><b>${i.icon} ${i.name}</b><div style="color:${i.color};font-weight:700;">${i.text}</div><div style="color:var(--muted);font-size:9px;">${i.sub}</div></div>`).join('')}</div>`
+    :'<div style="font-family:var(--mono);font-size:11px;color:var(--muted);">No zone changes or alignment flips this week.</div>'}
+  </div>`;
+}
+
+// ─── METALS WILLIAMS HISTORY ───────────────────────────────────────────────────
+function renderMetalsWilliamsHistory(){
+  const host=document.getElementById('williams-metals-history'); if(!host) return;
+  const ms=MARKETS.filter(m=>m.cat==='metals'&&allData[m.id]&&allData[m.id].length>=40);
+  if(!ms.length){ host.innerHTML=''; return; }
+  const n=Math.min(13,Math.min(...ms.map(m=>allData[m.id].length-30)));
+  const cols=[...Array(n).keys()].reverse();
+  const bg=v=>v>=90?'rgba(111,158,92,.8)':v<=10?'rgba(192,103,74,.8)':v>=70?'rgba(111,158,92,.3)':v<=30?'rgba(192,103,74,.3)':'transparent';
+  host.innerHTML=`<div class="section-title" style="margin-top:24px;">Williams Index History — last ${n} weeks</div>
+  <div style="overflow-x:auto;"><table style="border-collapse:collapse;font-family:var(--mono);font-size:11px;"><thead><tr><th style="padding:4px 8px;text-align:left;font-size:9px;color:var(--muted);">METAL</th>${cols.map(k=>`<th style="padding:4px 6px;font-size:9px;color:var(--muted);">${allData[ms[0].id][k].report_date_as_yyyy_mm_dd.slice(5)}</th>`).join('')}</tr></thead><tbody>
+  ${ms.map(m=>`<tr><td style="padding:4px 8px;font-weight:700;">${m.id}</td>${cols.map(k=>{const w=calcWilliamsIndex(allData[m.id].slice(k),26);const v=w?w.index:null;return `<td style="padding:4px 6px;text-align:center;background:${v==null?'transparent':bg(v)};">${v==null?'—':v}</td>`;}).join('')}</tr>`).join('')}
+  </tbody></table></div>`;
+}
 // ─── CUSTOM PAIR ANALYZER ──────────────────────────────────────────────────────
 // Lets the user type ANY two currencies (e.g. "EUR CHF", "EURCHF", "GBP/JPY")
 // and get a full COT report for that exact pair — same engine as Pair Builder,
