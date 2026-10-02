@@ -879,6 +879,15 @@
     <div id="custom-pair-result"></div>
   </div>
 
+  <!-- ═══════════ PAIR ITS SCORE HISTORY ═══════════ -->
+  <div class="custom-pair-box" id="pair-history-box">
+    <div class="custom-pair-title">📈 Pair Score History<span class="custom-pair-badge">ITS by week</span></div>
+    <div class="custom-pair-sub">Each pair's ITS differential (Base ITS − Quote ITS) recomputed for past weeks from the COT data already loaded. Click a row for the chart.</div>
+    <div id="pair-history-controls" style="display:flex;gap:6px;flex-wrap:wrap;margin:10px 0;"></div>
+    <div id="pair-history-table" style="overflow-x:auto;"></div>
+    <div id="pair-history-detail"></div>
+  </div>
+
   <div id="pairs-status"></div>
   <div class="pairs-grid" id="pairs-grid"></div>
 </div>
@@ -1706,7 +1715,7 @@ function renderWilliamsMetalsPage(){
 }
 
 function renderAll(){
-  renderCards(); renderStrengthPage(); renderPairsPage(); renderExtremesPage(); renderDivergencePage(); renderDashboard(); renderDisaggPage(); renderMatrixPage(); renderWilliamsPage(); renderWilliamsMetalsPage(); renderSeasonalPage();
+  renderCards(); renderStrengthPage(); renderPairsPage(); renderPairHistory(); renderExtremesPage(); renderDivergencePage(); renderDashboard(); renderDisaggPage(); renderMatrixPage(); renderWilliamsPage(); renderWilliamsMetalsPage(); renderSeasonalPage();
 }
 
 // ─── SEASONAL BIAS PAGE ────────────────────────────────────────────────────────
@@ -3570,6 +3579,125 @@ function renderPairsPage(){
       <div style="text-align:center;margin-top:4px;font-family:var(--mono);font-size:9px;color:${wAgree.color}">ITS vs Williams: ${wAgree.text}</div>
     </div>`;
   }).join('');
+}
+
+
+// ─── PAIR ITS SCORE HISTORY ────────────────────────────────────────────────────
+// Recomputes every currency's ITS as it would have read k weeks ago by slicing
+// rows (rows[0] = newest) and temporarily swapping the global allData, so the
+// peer-strength component is historically consistent too.
+let pairHistWeeks=13, pairHistSort='now', pairHistSel=null, pairHistCache=null;
+
+function computePairHistory(weeks){
+  const fx=MARKETS.filter(m=>m.cat==='forex'&&allData[m.id]).map(m=>m.id);
+  if(!fx.length) return null;
+  const minLen=Math.min(...fx.map(id=>allData[id].length));
+  const n=Math.min(weeks,minLen-30);
+  if(n<2) return null;
+  const stamp=fx.map(id=>allData[id][0].report_date_as_yyyy_mm_dd).join('|')+'|'+n;
+  if(pairHistCache&&pairHistCache.stamp===stamp) return pairHistCache;
+  const real=allData, hist={USD:[]}, dates=[];
+  fx.forEach(id=>hist[id]=[]);
+  try{
+    for(let k=0;k<n;k++){
+      const snap=Object.assign({},real);
+      fx.forEach(id=>snap[id]=real[id].slice(k));
+      allData=snap;
+      fx.forEach(id=>hist[id].push(calcITS(snap[id],false,id)));
+      hist.USD.push(Math.round(calcUSDScore(true)/2+50));
+      dates.push(real[fx[0]][k].report_date_as_yyyy_mm_dd);
+    }
+  } finally { allData=real; }
+  pairHistCache={stamp,n,dates,hist};
+  return pairHistCache;
+}
+
+function phCellBg(v){
+  const a=Math.min(.8,.1+Math.abs(v)/100*.8);
+  return v>=0?`rgba(111,158,92,${a})`:`rgba(192,103,74,${a})`;
+}
+function phZone(v){ return v>20?'BUY':v<-20?'SELL':'NEUTRAL'; }
+
+function phSetWeeks(w){ pairHistWeeks=w; renderPairHistory(); }
+function phSetSort(s){ pairHistSort=s; renderPairHistory(); }
+function phSelect(key){ pairHistSel=(pairHistSel===key?null:key); renderPairHistory(); }
+
+function renderPairHistory(){
+  const tbl=document.getElementById('pair-history-table');
+  if(!tbl) return;
+  const H=computePairHistory(pairHistWeeks);
+  const ctl=document.getElementById('pair-history-controls');
+  if(!H){ tbl.innerHTML='<div class="empty-state">Load data first</div>'; ctl.innerHTML=''; document.getElementById('pair-history-detail').innerHTML=''; return; }
+  const btn=(label,active,fn)=>`<button class="tab-btn ${active?'active':''}" onclick="${fn}">${label}</button>`;
+  ctl.innerHTML=[8,13,26,52].map(w=>btn(w+'W',pairHistWeeks===w,`phSetWeeks(${w})`)).join('')
+    +'<span style="width:14px"></span>'
+    +[['now','Sort: Strongest now'],['d1','Sort: 1W change'],['d4','Sort: 4W change']].map(([k,l])=>btn(l,pairHistSort===k,`phSetSort('${k}')`)).join('');
+
+  const rows=FOREX_PAIRS.filter(([b,q])=>H.hist[b]&&H.hist[q]).map(([b,q])=>{
+    const s=H.hist[b].map((v,i)=>v-H.hist[q][i]); // index 0 = newest
+    let streak=1; const z=phZone(s[0]);
+    while(streak<s.length&&phZone(s[streak])===z) streak++;
+    const d1=s.length>1?s[0]-s[1]:0, d4=s.length>4?s[0]-s[4]:null;
+    return {b,q,key:b+'_'+q,s,d1,d4,streak,zone:z};
+  });
+  const sortFn={now:(a,c)=>Math.abs(c.s[0])-Math.abs(a.s[0]),d1:(a,c)=>Math.abs(c.d1)-Math.abs(a.d1),d4:(a,c)=>Math.abs(c.d4||0)-Math.abs(a.d4||0)}[pairHistSort];
+  rows.sort(sortFn);
+
+  const cols=H.dates.map((d,i)=>i).reverse(); // oldest → newest, left → right
+  const th='padding:4px 6px;font-size:9px;color:var(--muted);font-weight:600;white-space:nowrap;';
+  const dFmt=d=>d.slice(5); // MM-DD
+  let html=`<table style="border-collapse:collapse;font-family:var(--mono);font-size:11px;width:100%;">
+    <thead><tr>
+      <th style="${th}text-align:left;position:sticky;left:0;background:var(--surface);">PAIR</th>
+      <th style="${th}">1W Δ</th><th style="${th}">4W Δ</th><th style="${th}">ZONE</th>
+      ${cols.map(i=>`<th style="${th}${i===0?'color:var(--accent);':''}">${dFmt(H.dates[i])}</th>`).join('')}
+    </tr></thead><tbody>`;
+  const dCol=v=>v==null?'var(--muted)':v>0?'#6f9e5c':v<0?'#c0674a':'var(--muted)';
+  rows.forEach(r=>{
+    const sel=pairHistSel===r.key;
+    html+=`<tr onclick="phSelect('${r.key}')" style="cursor:pointer;${sel?'outline:1px solid var(--accent);':''}">
+      <td style="padding:4px 8px;font-weight:700;position:sticky;left:0;background:var(--surface);white-space:nowrap;">${r.b}/${r.q}</td>
+      <td style="padding:4px 6px;text-align:center;color:${dCol(r.d1)};font-weight:700;">${r.d1>0?'+':''}${r.d1}</td>
+      <td style="padding:4px 6px;text-align:center;color:${dCol(r.d4)};font-weight:700;">${r.d4==null?'—':(r.d4>0?'+':'')+r.d4}</td>
+      <td style="padding:4px 6px;text-align:center;font-size:9px;color:var(--muted);white-space:nowrap;">${r.zone} ${r.streak}w</td>
+      ${cols.map(i=>`<td style="padding:4px 6px;text-align:center;min-width:34px;background:${phCellBg(r.s[i])};${i===0?'font-weight:700;':''}">${r.s[i]>0?'+':''}${r.s[i]}</td>`).join('')}
+    </tr>`;
+  });
+  tbl.innerHTML=html+'</tbody></table>';
+
+  const det=document.getElementById('pair-history-detail');
+  const r=rows.find(x=>x.key===pairHistSel);
+  det.innerHTML=r?phDetailHtml(r,H):'';
+}
+
+function phLineSvg(series,dates,yMin,yMax,midLine,w=640,h=170){
+  const padL=34,padR=10,padT=10,padB=22, n=dates.length;
+  const x=i=>padL+(n<=1?0:(i/(n-1))*(w-padL-padR));
+  const y=v=>padT+(1-(v-yMin)/(yMax-yMin))*(h-padT-padB);
+  let g=`<line x1="${padL}" x2="${w-padR}" y1="${y(midLine)}" y2="${y(midLine)}" stroke="var(--border)" stroke-dasharray="4 3"/>`;
+  [yMin,midLine,yMax].forEach(v=>g+=`<text x="${padL-4}" y="${y(v)+3}" text-anchor="end" font-size="9" fill="var(--muted)">${v}</text>`);
+  const step=Math.max(1,Math.ceil(n/8));
+  dates.forEach((d,i)=>{ if(i%step===0||i===n-1) g+=`<text x="${x(i)}" y="${h-6}" text-anchor="middle" font-size="9" fill="var(--muted)">${d.slice(5)}</text>`; });
+  series.forEach(s=>{
+    g+=`<polyline fill="none" stroke="${s.color}" stroke-width="2" points="${s.vals.map((v,i)=>x(i)+','+y(v)).join(' ')}"/>`;
+    s.vals.forEach((v,i)=>g+=`<circle cx="${x(i)}" cy="${y(v)}" r="3" fill="${s.color}"><title>${s.name} · ${dates[i]}: ${v}</title></circle>`);
+  });
+  return `<svg viewBox="0 0 ${w} ${h}" style="width:100%;max-width:${w}px;height:auto;display:block;">${g}</svg>`;
+}
+
+function phDetailHtml(r,H){
+  const dates=H.dates.slice().reverse(); // oldest → newest
+  const pair=r.s.slice().reverse();
+  const base=H.hist[r.b].slice().reverse(), quote=H.hist[r.q].slice().reverse();
+  const lg=(c,l)=>`<span style="margin-right:14px;"><span style="display:inline-block;width:10px;height:3px;background:${c};vertical-align:middle;margin-right:5px;"></span>${l}</span>`;
+  return `<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);">
+    <div style="font-family:var(--mono);font-size:14px;font-weight:700;margin-bottom:10px;">${r.b}/${r.q} — last ${dates.length} weeks</div>
+    <div class="chart-title">Pair score (Base ITS − Quote ITS) · above +20 BUY · below −20 SELL</div>
+    ${phLineSvg([{name:'Pair score',color:'#c9a35f',vals:pair}],dates,-100,100,0)}
+    <div class="chart-title" style="margin-top:12px;">Individual ITS (0–100)</div>
+    ${phLineSvg([{name:r.b,color:'#6f9e5c',vals:base},{name:r.q,color:'#9a8fae',vals:quote}],dates,0,100,50)}
+    <div style="font-family:var(--mono);font-size:10px;margin-top:6px;">${lg('#6f9e5c',r.b+' ITS')}${lg('#9a8fae',r.q+' ITS')}</div>
+  </div>`;
 }
 
 // ─── CUSTOM PAIR ANALYZER ──────────────────────────────────────────────────────
