@@ -2,7 +2,7 @@
 """Fetch CFTC COT data (Legacy + Disaggregated) and write data/cot.json.
 Same markets / limit (260 weeks) as the dashboard, so the page can load the
 snapshot instead of hitting CORS proxies from the browser."""
-import json, sys, time, urllib.parse, urllib.request
+import json, os, sys, time, urllib.parse, urllib.request
 
 LEGACY = 'https://publicreporting.cftc.gov/resource/6dca-aqww.json'
 DISAGG = 'https://publicreporting.cftc.gov/resource/kh3c-gbw2.json'
@@ -22,7 +22,9 @@ LEGACY_MARKETS = {
  'PLATINUM':'PLATINUM - NEW YORK MERCANTILE EXCHANGE',
  'PALLADIUM':'PALLADIUM - NEW YORK MERCANTILE EXCHANGE',
 }
-DISAGG_IDS = ['EUR','GBP','JPY','CHF','CAD','AUD','NZD','GOLD','SILVER','COPPER']
+# This dataset (Disaggregated Futures Only) only covers commodities, not FX
+# futures, so FX is skipped here (the dashboard already falls back to Legacy for FX).
+DISAGG_IDS = ['GOLD','SILVER','COPPER']
 
 def get(base, name, tries=4):
     q = ("?$where=market_and_exchange_names=%27" + urllib.parse.quote(name) +
@@ -50,6 +52,7 @@ def main():
     # refuse to overwrite a good snapshot with a badly incomplete one
     if len(out['legacy']) < len(LEGACY_MARKETS) - 2:
         sys.exit('Too many legacy markets failed; keeping previous snapshot.')
+    os.makedirs('data', exist_ok=True)
     with open('data/cot.json', 'w') as f:
         json.dump(out, f, separators=(',', ':'))
     d = next(iter(out['legacy'].values()))[0]['report_date_as_yyyy_mm_dd']
