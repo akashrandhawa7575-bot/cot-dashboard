@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0b1226">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="COT Intel">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>COT Intelligence v8 – Institutional Decision Engine by Akash</title>
@@ -4308,6 +4316,11 @@ function renderDivergencePage(){
 
 window.addEventListener('load',()=>{initTheme();initQuoteRotation();initCOTCountdown();restoreLastFetchedDisplay();renderCustomPairChips();renderSignalLog();tfUpdateInstrumentOptions();});
 window.addEventListener('resize',()=>{if(selectedId&&allData[selectedId]){ const _m=MARKETS.find(m=>m.id===selectedId); drawChart(allData[selectedId], _m&&_m.cat==='metals'); }});
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js"));
+}
 </script>
 </body>
 </html>
